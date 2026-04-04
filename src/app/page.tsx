@@ -242,7 +242,7 @@ export default function Page() {
           <h2 className="text-2xl font-semibold">Schema format</h2>
           <p className="text-muted-foreground">
             The form builder outputs a{" "}
-            <a href="https://github.com/json-render/json-render" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-foreground transition-colors">@json-render</a>{" "}
+            <a href="https://github.com/vercel-labs/json-render" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-foreground transition-colors">@json-render</a>{" "}
             compatible <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormSchema</code>. Pass it directly to{" "}
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormRenderer</code> to render the form.
           </p>

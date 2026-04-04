@@ -132,7 +132,7 @@ Enable it in **Settings → Pages → Source → GitHub Actions**.
 
 - [Next.js 16](https://nextjs.org) — framework + static export
 - [shadcn/ui](https://ui.shadcn.com) — component library & registry tooling
-- [@json-render/react](https://github.com/json-render/json-render) — JSON-driven rendering
+- [@json-render/react](https://github.com/vercel-labs/json-render) — JSON-driven rendering
 - [react-hook-form](https://react-hook-form.com) — form state
 - [@dnd-kit](https://dndkit.com) — drag and drop
 - [Shiki](https://shiki.style) — syntax highlighting
