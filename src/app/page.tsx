@@ -1,5 +1,6 @@
 import { Blocks, Component, ExternalLink, GitFork, Package } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const REGISTRY_URL =
   process.env.NEXT_PUBLIC_REGISTRY_URL || "https://your-username.github.io/your-repo/r";
@@ -126,11 +127,12 @@ export default function DocsPage() {
               href="https://github.com/rumeshudash/form-studio"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mr-2"
             >
               <GitFork className="h-3.5 w-3.5" />
               GitHub
             </a>
+            <ModeToggle />
           </nav>
         </div>
       </header>

@@ -1,5 +1,6 @@
 "use client";
 
+import { ModeToggle } from "@/components/mode-toggle";
 import { FormRenderer } from "@/registry/form-renderer";
 import type { FormSchema } from "@/registry/form-renderer/types";
 
@@ -70,7 +71,10 @@ const SAMPLE_SCHEMA: FormSchema = {
 
 export default function RendererDemoPage() {
   return (
-    <main className="min-h-screen bg-muted/20 flex items-center justify-center p-8">
+    <main className="min-h-screen bg-muted/20 flex flex-col items-center justify-center p-8 relative">
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
+      </div>
       <div className="w-full max-w-lg bg-background rounded-xl border border-border p-8 shadow-sm">
         <h1 className="text-2xl font-semibold mb-1">Form Renderer Demo</h1>
         <p className="text-sm text-muted-foreground mb-8">

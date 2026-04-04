@@ -2,6 +2,7 @@
 
 import { Check, Copy } from "lucide-react";
 import { useCallback, useState } from "react";
+import { ModeToggle } from "@/components/mode-toggle";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { cn } from "@/lib/utils";
 import { FormBuilder } from "@/registry/form-builder";
@@ -69,6 +70,10 @@ export default function FormBuilderWithSchemaPage() {
                 {copied ? "Copied" : "Copy"}
               </button>
             )}
+
+            <div className={cn("flex items-center", activeTab !== "schema" && "ml-auto")}>
+              <ModeToggle />
+            </div>
           </div>
 
           {/* Panel content */}
