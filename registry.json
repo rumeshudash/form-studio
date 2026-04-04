@@ -52,7 +52,9 @@
         "@dnd-kit/sortable",
         "@dnd-kit/utilities"
       ],
-      "registryDependencies": ["form-renderer"],
+      "registryDependencies": [
+        "https://rumeshudash.github.io/form-studio/r/form-renderer.json"
+      ],
       "files": [
         {
           "path": "src/registry/form-builder/index.tsx",
@@ -117,7 +119,7 @@
         "shiki"
       ],
       "registryDependencies": [
-        "form-builder",
+        "https://rumeshudash.github.io/form-studio/r/form-builder.json",
         "resizable",
         "input",
         "textarea",

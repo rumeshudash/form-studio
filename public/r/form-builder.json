@@ -13,7 +13,7 @@
     "@dnd-kit/utilities"
   ],
   "registryDependencies": [
-    "form-renderer"
+    "https://rumeshudash.github.io/form-studio/r/form-renderer.json"
   ],
   "files": [
     {
