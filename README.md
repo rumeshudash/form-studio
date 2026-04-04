@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Form Studio
 
-## Getting Started
+A [shadcn/ui registry](https://ui.shadcn.com/docs/registry) with a drag-and-drop form builder, a JSON schema renderer, and a ready-to-use block — all installable with a single command.
 
-First, run the development server:
+**[Docs & Registry](https://rumeshudash.github.io/form-studio)** · **[Live Demo](https://rumeshudash.github.io/form-studio/demo-builder)**
+
+---
+
+## Registry items
+
+| Name | Type | Description |
+|---|---|---|
+| `form-renderer` | component | Renders a JSON schema into a form using `@json-render/react` + `react-hook-form` |
+| `form-builder` | component | Drag-and-drop builder that outputs a `FormSchema` |
+| `form-builder-with-schema` | block | Full-page block: builder + live schema panel (copyable) + form preview |
+
+## Installation
+
+Make sure you have [shadcn/ui initialized](https://ui.shadcn.com/docs/installation), then add any item:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Form Renderer only
+npx shadcn@latest add "https://rumeshudash.github.io/form-studio/r/form-renderer.json"
+
+# Form Builder (includes Form Renderer)
+npx shadcn@latest add "https://rumeshudash.github.io/form-studio/r/form-builder.json"
+
+# Full block — builder + schema panel + preview (includes everything above)
+npx shadcn@latest add "https://rumeshudash.github.io/form-studio/r/form-builder-with-schema.json"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Form Renderer
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```tsx
+import { FormRenderer } from "@/components/form-renderer"
 
-## Learn More
+const schema = {
+  title: "Contact",
+  type: "Stack",
+  props: { gap: "md" },
+  children: [
+    { type: "TextInput", props: { label: "Name", name: "name" } },
+    { type: "Button", props: { label: "Submit" }, on: { press: "submit" } },
+  ],
+}
 
-To learn more about Next.js, take a look at the following resources:
+export default function Page() {
+  return (
+    <FormRenderer
+      schema={schema}
+      onSubmit={(data) => console.log(data)}
+    />
+  )
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Form Builder
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```tsx
+import { FormBuilder } from "@/components/form-builder"
+import type { FormSchema } from "@/components/form-renderer/types"
 
-## Deploy on Vercel
+export default function Page() {
+  return (
+    <FormBuilder
+      catalog={myFieldDefs}        // your FormFieldDefinition[]
+      onChange={(schema: FormSchema) => console.log(schema)}
+      className="h-screen"
+    />
+  )
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Block
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The block installs directly as a Next.js page at `app/form-builder/page.tsx`. Edit `custom-fields.tsx` alongside it to add or remove field types.
+
+## Custom fields
+
+Define your own field components and register them with both the builder and renderer:
+
+```tsx
+// my-field.tsx
+import type { FieldComponent, FormFieldDefinition } from "@/components/form-renderer/types"
+import { Star } from "lucide-react"
+
+export const RatingInput: FieldComponent = ({ label, value, onChange }) => (
+  // ... your component
+)
+
+export const ratingDef: FormFieldDefinition = {
+  fieldType: "RatingInput",
+  displayName: "Star Rating",
+  icon: Star,
+  category: "Input",
+  defaultProps: { label: "Rating", value: null, max: 5 },
+  defaultValue: 0,
+  configurableProps: [
+    { key: "label", label: "Label", inputType: "text" },
+    { key: "max",   label: "Max Stars", inputType: "number" },
+  ],
+}
+```
+
+```tsx
+// Pass to both components
+<FormBuilder catalog={[ratingDef]} onChange={setSchema} />
+<FormRenderer schema={schema} customFields={{ RatingInput }} onSubmit={...} />
+```
+
+## Development
+
+```bash
+npm install
+npm run dev          # dev server at http://localhost:3000
+npm run registry:build   # regenerate public/r/*.json
+npm run build        # static export → out/
+```
+
+### GitHub Pages deployment
+
+The included `.github/workflows/deploy.yml` automatically:
+1. Builds the registry (`public/r/*.json`)
+2. Runs `next build` (static export to `out/`)
+3. Deploys to GitHub Pages
+
+Enable it in **Settings → Pages → Source → GitHub Actions**.
+
+## Tech stack
+
+- [Next.js 16](https://nextjs.org) — framework + static export
+- [shadcn/ui](https://ui.shadcn.com) — component library & registry tooling
+- [@json-render/react](https://github.com/json-render/json-render) — JSON-driven rendering
+- [react-hook-form](https://react-hook-form.com) — form state
+- [@dnd-kit](https://dndkit.com) — drag and drop
+- [Shiki](https://shiki.style) — syntax highlighting
+- [Base UI](https://base-ui.com) — headless primitives (via shadcn)
