@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "form-builder",
-  "homepage": "https://github.com/rumeshudash/form-builder",
+  "name": "form-studio",
+  "homepage": "https://github.com/rumeshudash/form-studio",
   "items": [
     {
       "name": "form-renderer",
