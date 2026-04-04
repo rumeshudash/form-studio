@@ -16,7 +16,7 @@ import { BUILT_IN_LAYOUT_MAP } from "./built-in-layout-defs";
 function arrayMove<T>(arr: T[], from: number, to: number): T[] {
   const next = [...arr];
   const [item] = next.splice(from, 1);
-  next.splice(to, 0, item);
+  next.splice(to, 0, item!);
   return next;
 }
 
