@@ -67,7 +67,7 @@ export function FieldPalette({ catalog, onAddField, onAddGrid }: FieldPalettePro
   const byCategory = catalog.reduce(
     (acc, def) => {
       if (!acc[def.category]) acc[def.category] = [];
-      acc[def.category].push(def);
+      acc[def.category]?.push(def);
       return acc;
     },
     {} as Record<string, FormFieldDefinition[]>

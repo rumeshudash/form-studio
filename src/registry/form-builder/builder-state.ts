@@ -40,7 +40,7 @@ export function useFormBuilderState(
     const base =
       initial && "fromSchema" in initial
         ? buildBuilderStateFromSpec(initial.fromSchema, validFieldTypes, fullCatalogMap)
-        : initial;
+        : (initial as Partial<FormBuilderState> | undefined);
     return {
       items: base?.items ?? [],
       selectedFieldId: null,
