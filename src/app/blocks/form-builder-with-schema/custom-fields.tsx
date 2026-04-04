@@ -1,24 +1,20 @@
 "use client";
 
 import {
-  Star,
-  Pipette,
-  Calendar,
-  TextCursorInput,
   AlignLeft,
-  ChevronDown,
+  Calendar,
   CheckSquare,
+  ChevronDown,
   CircleDot,
-  ToggleLeft,
+  Pipette,
   SlidersHorizontal,
+  Star,
+  TextCursorInput,
+  ToggleLeft,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -27,6 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import type {
   FieldComponent,
   FieldComponentProps,
@@ -92,10 +92,7 @@ const SelectField: FieldComponent = ({
 }) => (
   <div className="flex flex-col gap-1.5">
     {label && <Label>{label}</Label>}
-    <Select
-      value={(value as string) ?? ""}
-      onValueChange={(val) => onChange(val)}
-    >
+    <Select value={(value as string) ?? ""} onValueChange={(val) => onChange(val)}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder={(placeholder as string) ?? "Select…"} />
       </SelectTrigger>
@@ -183,9 +180,7 @@ const SliderField: FieldComponent = ({
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         {label && <Label>{label}</Label>}
-        <span className="text-sm text-muted-foreground tabular-nums">
-          {numVal}
-        </span>
+        <span className="text-sm text-muted-foreground tabular-nums">{numVal}</span>
       </div>
       <Slider
         value={[numVal]}

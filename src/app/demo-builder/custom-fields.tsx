@@ -1,8 +1,12 @@
 "use client";
 
-import { Star, Pipette, Calendar } from "lucide-react";
+import { Calendar, Pipette, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { FieldComponent, FieldComponentProps, FormFieldDefinition } from "@/registry/form-renderer/types";
+import type {
+  FieldComponent,
+  FieldComponentProps,
+  FormFieldDefinition,
+} from "@/registry/form-renderer/types";
 
 // ─── Custom field components ──────────────────────────────────────────────────
 // These are plain React components — no @json-render imports needed.

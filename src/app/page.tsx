@@ -1,9 +1,8 @@
-import { GitFork, ExternalLink, Blocks, Component, Package } from "lucide-react";
+import { Blocks, Component, ExternalLink, GitFork, Package } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
 
 const REGISTRY_URL =
-  process.env.NEXT_PUBLIC_REGISTRY_URL ||
-  "https://your-username.github.io/your-repo/r";
+  process.env.NEXT_PUBLIC_REGISTRY_URL || "https://your-username.github.io/your-repo/r";
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
@@ -42,7 +41,17 @@ const BLOCKS = [
     description:
       "A full-page block that combines the drag-and-drop builder with a resizable side panel showing the live JSON schema (copyable) and a form preview — ready to drop into any Next.js app route.",
     dependencies: ["shiki", "react-resizable-panels"],
-    registryDeps: ["form-builder", "resizable", "input", "textarea", "select", "checkbox", "radio-group", "switch", "slider"],
+    registryDeps: [
+      "form-builder",
+      "resizable",
+      "input",
+      "textarea",
+      "select",
+      "checkbox",
+      "radio-group",
+      "switch",
+      "slider",
+    ],
   },
 ];
 
@@ -66,18 +75,12 @@ function DepBadge({ label }: { label: string }) {
   );
 }
 
-function ComponentCard({
-  item,
-}: {
-  item: (typeof COMPONENTS)[number] | (typeof BLOCKS)[number];
-}) {
+function ComponentCard({ item }: { item: (typeof COMPONENTS)[number] | (typeof BLOCKS)[number] }) {
   return (
     <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <h3 className="text-base font-semibold">{item.title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {item.description}
-        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
       </div>
 
       <InstallCommand url={`${REGISTRY_URL}/${item.name}.json`} />
@@ -140,10 +143,22 @@ export default function DocsPage() {
             shadcn/ui registry
           </div>
           <h1 className="text-4xl font-bold tracking-tight leading-tight">
-            Build dynamic forms,<br />faster.
+            Build dynamic forms,
+            <br />
+            faster.
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            Form Studio is a <a href="https://ui.shadcn.com/docs/registry" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-foreground transition-colors">shadcn/ui registry</a> with a drag-and-drop form builder, a JSON schema renderer, and a ready-to-use block — all installable with a single command.
+            Form Studio is a{" "}
+            <a
+              href="https://ui.shadcn.com/docs/registry"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-foreground transition-colors"
+            >
+              shadcn/ui registry
+            </a>{" "}
+            with a drag-and-drop form builder, a JSON schema renderer, and a ready-to-use block —
+            all installable with a single command.
           </p>
           <div className="flex flex-wrap gap-3">
             <a
@@ -171,7 +186,14 @@ export default function DocsPage() {
             <h2 className="text-2xl font-semibold">Quick start</h2>
             <p className="text-muted-foreground">
               Make sure you have a Next.js project with{" "}
-              <a href="https://ui.shadcn.com/docs/installation" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-foreground transition-colors">shadcn/ui</a>{" "}
+              <a
+                href="https://ui.shadcn.com/docs/installation"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                shadcn/ui
+              </a>{" "}
               initialized, then install any registry item directly.
             </p>
           </div>
@@ -227,8 +249,8 @@ export default function Page() {
           </div>
           <p className="text-muted-foreground -mt-2">
             Drop-in page components. Install directly into your{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">app/</code>{" "}
-            directory and customize from there.
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">app/</code> directory
+            and customize from there.
           </p>
           <div className="flex flex-col gap-4">
             {BLOCKS.map((item) => (
@@ -242,9 +264,19 @@ export default function Page() {
           <h2 className="text-2xl font-semibold">Schema format</h2>
           <p className="text-muted-foreground">
             The form builder outputs a{" "}
-            <a href="https://github.com/vercel-labs/json-render" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-foreground transition-colors">@json-render</a>{" "}
-            compatible <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormSchema</code>. Pass it directly to{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormRenderer</code> to render the form.
+            <a
+              href="https://github.com/vercel-labs/json-render"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-foreground transition-colors"
+            >
+              @json-render
+            </a>{" "}
+            compatible{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormSchema</code>.
+            Pass it directly to{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormRenderer</code>{" "}
+            to render the form.
           </p>
           <div className="rounded-xl border border-border bg-muted/30 p-4 font-mono text-xs text-foreground/80 leading-relaxed overflow-x-auto">
             <pre>{`{

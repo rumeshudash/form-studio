@@ -1,7 +1,13 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { CanvasField, ConfigurableProp, FormFieldDefinition, StackConfig, ButtonConfig } from "../form-renderer/types";
+import type {
+  ButtonConfig,
+  CanvasField,
+  ConfigurableProp,
+  FormFieldDefinition,
+  StackConfig,
+} from "../form-renderer/types";
 
 interface FieldConfigPanelProps {
   field: CanvasField | null;
@@ -14,8 +20,13 @@ interface FieldConfigPanelProps {
 }
 
 export function FieldConfigPanel({
-  field, catalogMap, onUpdateProp,
-  stackConfig, buttonConfig, onUpdateStackConfig, onUpdateButtonConfig,
+  field,
+  catalogMap,
+  onUpdateProp,
+  stackConfig,
+  buttonConfig,
+  onUpdateStackConfig,
+  onUpdateButtonConfig,
 }: FieldConfigPanelProps) {
   const def = field ? catalogMap[field.fieldType] : null;
 
@@ -48,7 +59,12 @@ export function FieldConfigPanel({
             <p className="text-xs font-semibold text-foreground mb-2">Layout</p>
             <div className="flex flex-col gap-3">
               <PropEditor
-                prop={{ key: "gap", label: "Gap", inputType: "select", options: ["none", "sm", "md", "lg", "xl"] }}
+                prop={{
+                  key: "gap",
+                  label: "Gap",
+                  inputType: "select",
+                  options: ["none", "sm", "md", "lg", "xl"],
+                }}
                 value={stackConfig.gap}
                 onChange={(v) => onUpdateStackConfig("gap", v as StackConfig["gap"])}
               />
@@ -64,7 +80,12 @@ export function FieldConfigPanel({
                 onChange={(v) => onUpdateButtonConfig("label", v as string)}
               />
               <PropEditor
-                prop={{ key: "variant", label: "Variant", inputType: "select", options: ["primary", "secondary", "outline", "ghost", "danger"] }}
+                prop={{
+                  key: "variant",
+                  label: "Variant",
+                  inputType: "select",
+                  options: ["primary", "secondary", "outline", "ghost", "danger"],
+                }}
                 value={buttonConfig.variant}
                 onChange={(v) => onUpdateButtonConfig("variant", v as ButtonConfig["variant"])}
               />

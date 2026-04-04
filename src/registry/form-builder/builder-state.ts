@@ -1,18 +1,23 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import { buildSpecFromBuilderState, buildBuilderStateFromSpec, DEFAULT_STACK_CONFIG, DEFAULT_BUTTON_CONFIG } from "../shared/spec-builder";
-import { BUILT_IN_LAYOUT_MAP } from "../shared/built-in-layout-defs";
+import { useCallback, useMemo, useState } from "react";
 import type {
-  FormBuilderState,
+  ButtonConfig,
   CanvasField,
   CanvasGrid,
   CanvasItem,
-  FormSchema,
+  FormBuilderState,
   FormFieldDefinition,
+  FormSchema,
   StackConfig,
-  ButtonConfig,
 } from "../form-renderer/types";
+import { BUILT_IN_LAYOUT_MAP } from "../shared/built-in-layout-defs";
+import {
+  buildBuilderStateFromSpec,
+  buildSpecFromBuilderState,
+  DEFAULT_BUTTON_CONFIG,
+  DEFAULT_STACK_CONFIG,
+} from "../shared/spec-builder";
 
 function arrayMove<T>(arr: T[], from: number, to: number): T[] {
   const next = [...arr];
@@ -34,10 +39,7 @@ export function useFormBuilderState(
   catalogMap: Record<string, FormFieldDefinition>,
   initial?: Partial<FormBuilderState> | { fromSchema: Partial<FormSchema> }
 ) {
-  const fullCatalogMap = useMemo(
-    () => ({ ...BUILT_IN_LAYOUT_MAP, ...catalogMap }),
-    [catalogMap]
-  );
+  const fullCatalogMap = useMemo(() => ({ ...BUILT_IN_LAYOUT_MAP, ...catalogMap }), [catalogMap]);
   const validFieldTypes = new Set(Object.keys(fullCatalogMap));
 
   const [state, setState] = useState<FormBuilderState>(() => {
@@ -91,7 +93,13 @@ export function useFormBuilderState(
   const addGrid = useCallback((columns: 2 | 3) => {
     const id = crypto.randomUUID();
     const shortId = id.slice(0, 8);
-    const newGrid: CanvasGrid = { kind: "grid", id, elementKey: `grid_${shortId}`, columns, fields: [] };
+    const newGrid: CanvasGrid = {
+      kind: "grid",
+      id,
+      elementKey: `grid_${shortId}`,
+      columns,
+      fields: [],
+    };
     setState((prev) => ({ ...prev, items: [...prev.items, newGrid] }));
   }, []);
 
@@ -101,12 +109,17 @@ export function useFormBuilderState(
     setState((prev) => {
       const items = prev.items
         .filter((item) => item.id !== id)
-        .map((item): CanvasItem =>
-          item.kind === "grid"
-            ? { ...item, fields: item.fields.filter((f) => f.id !== id) }
-            : item
+        .map(
+          (item): CanvasItem =>
+            item.kind === "grid"
+              ? { ...item, fields: item.fields.filter((f) => f.id !== id) }
+              : item
         );
-      return { ...prev, items, selectedFieldId: prev.selectedFieldId === id ? null : prev.selectedFieldId };
+      return {
+        ...prev,
+        items,
+        selectedFieldId: prev.selectedFieldId === id ? null : prev.selectedFieldId,
+      };
     });
   }, []);
 
@@ -159,16 +172,18 @@ export function useFormBuilderState(
 
         if (toContainer === "root") {
           const overIdx = overId ? items.findIndex((i) => i.id === overId) : -1;
-          items = overIdx !== -1
-            ? [...items.slice(0, overIdx), movedField, ...items.slice(overIdx)]
-            : [...items, movedField];
+          items =
+            overIdx !== -1
+              ? [...items.slice(0, overIdx), movedField, ...items.slice(overIdx)]
+              : [...items, movedField];
         } else {
           items = items.map((item): CanvasItem => {
             if (item.kind !== "grid" || item.id !== toContainer) return item;
             const overIdx = overId ? item.fields.findIndex((f) => f.id === overId) : -1;
-            const newFields = overIdx !== -1
-              ? [...item.fields.slice(0, overIdx), movedField!, ...item.fields.slice(overIdx)]
-              : [...item.fields, movedField!];
+            const newFields =
+              overIdx !== -1
+                ? [...item.fields.slice(0, overIdx), movedField!, ...item.fields.slice(overIdx)]
+                : [...item.fields, movedField!];
             return { ...item, fields: newFields };
           });
         }
@@ -189,7 +204,12 @@ export function useFormBuilderState(
           return { ...item, props: { ...item.props, [propKey]: value } };
         }
         if (item.kind === "grid") {
-          return { ...item, fields: item.fields.map((f) => f.id === id ? { ...f, props: { ...f.props, [propKey]: value } } : f) };
+          return {
+            ...item,
+            fields: item.fields.map((f) =>
+              f.id === id ? { ...f, props: { ...f.props, [propKey]: value } } : f
+            ),
+          };
         }
         return item;
       }),
@@ -205,13 +225,19 @@ export function useFormBuilderState(
     }));
   }, []);
 
-  const updateStackConfig = useCallback(<K extends keyof StackConfig>(key: K, value: StackConfig[K]) => {
-    setState((prev) => ({ ...prev, stackConfig: { ...prev.stackConfig, [key]: value } }));
-  }, []);
+  const updateStackConfig = useCallback(
+    <K extends keyof StackConfig>(key: K, value: StackConfig[K]) => {
+      setState((prev) => ({ ...prev, stackConfig: { ...prev.stackConfig, [key]: value } }));
+    },
+    []
+  );
 
-  const updateButtonConfig = useCallback(<K extends keyof ButtonConfig>(key: K, value: ButtonConfig[K]) => {
-    setState((prev) => ({ ...prev, buttonConfig: { ...prev.buttonConfig, [key]: value } }));
-  }, []);
+  const updateButtonConfig = useCallback(
+    <K extends keyof ButtonConfig>(key: K, value: ButtonConfig[K]) => {
+      setState((prev) => ({ ...prev, buttonConfig: { ...prev.buttonConfig, [key]: value } }));
+    },
+    []
+  );
 
   const selectField = useCallback((id: string | null) => {
     setState((prev) => ({ ...prev, selectedFieldId: id }));
@@ -223,17 +249,25 @@ export function useFormBuilderState(
 
   const schema = useMemo(
     () => buildSpecFromBuilderState(state, fullCatalogMap),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // biome-ignore lint/correctness/useExhaustiveDependencies: intentional subset — fullCatalogMap is stable and excluded to avoid unnecessary rebuilds
     [state.items, state.formTitle, state.formDescription, state.stackConfig, state.buttonConfig]
   );
 
   return {
-    state, schema,
-    addField, addGrid, removeItem,
-    reorderItems, reorderFieldsInGrid, moveField,
-    updateFieldProp, updateGridColumns,
-    updateStackConfig, updateButtonConfig,
-    selectField, setFormMeta,
+    state,
+    schema,
+    addField,
+    addGrid,
+    removeItem,
+    reorderItems,
+    reorderFieldsInGrid,
+    moveField,
+    updateFieldProp,
+    updateGridColumns,
+    updateStackConfig,
+    updateButtonConfig,
+    selectField,
+    setFormMeta,
     fullCatalogMap,
   };
 }

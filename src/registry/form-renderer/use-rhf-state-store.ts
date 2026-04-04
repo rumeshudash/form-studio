@@ -1,8 +1,8 @@
 "use client";
 
+import type { StateModel, StateStore } from "@json-render/react";
 import { useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
-import type { StateStore, StateModel } from "@json-render/react";
 
 function getByJsonPointer(obj: Record<string, unknown>, path: string): unknown {
   if (!path || path === "/") return obj;
@@ -82,7 +82,7 @@ export function useRhfStateStore(defaultValues: Record<string, unknown> = {}) {
         return () => listenersRef.current.delete(listener);
       },
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // biome-ignore lint/correctness/useExhaustiveDependencies: store is created once on mount; initialValues changes are intentionally ignored
     []
   );
 

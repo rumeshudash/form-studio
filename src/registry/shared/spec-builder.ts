@@ -1,16 +1,20 @@
 import type {
-  FormBuilderState,
-  FormSchema,
+  ButtonConfig,
   CanvasField,
   CanvasGrid,
   CanvasItem,
+  FormBuilderState,
   FormFieldDefinition,
+  FormSchema,
   StackConfig,
-  ButtonConfig,
 } from "../form-renderer/types";
 
 export const DEFAULT_STACK_CONFIG: StackConfig = { gap: "md" };
-export const DEFAULT_BUTTON_CONFIG: ButtonConfig = { label: "Submit", variant: "primary", disabled: false };
+export const DEFAULT_BUTTON_CONFIG: ButtonConfig = {
+  label: "Submit",
+  variant: "primary",
+  disabled: false,
+};
 
 function getDefaultValue(field: CanvasField, def?: FormFieldDefinition): unknown {
   if (def?.defaultValue !== undefined) return def.defaultValue;
@@ -49,7 +53,13 @@ function makeCanvasField(
   def?: FormFieldDefinition
 ): CanvasField {
   if (def?.isStructural) {
-    return { kind: "field", id: crypto.randomUUID(), elementKey, fieldType: el.type, props: { ...(el.props ?? {}) } };
+    return {
+      kind: "field",
+      id: crypto.randomUUID(),
+      elementKey,
+      fieldType: el.type,
+      props: { ...(el.props ?? {}) },
+    };
   }
   const bindProp = getBoundProp(el.type, def);
   return {
@@ -83,12 +93,24 @@ export function buildBuilderStateFromSpec(
       for (const childKey of el.children ?? []) {
         const childEl = schema.elements?.[childKey];
         if (childEl && validFieldTypes.has(childEl.type)) {
-          fields.push(makeCanvasField(childKey, { type: childEl.type, props: childEl.props as Record<string, unknown> }, catalogMap[childEl.type]));
+          fields.push(
+            makeCanvasField(
+              childKey,
+              { type: childEl.type, props: childEl.props as Record<string, unknown> },
+              catalogMap[childEl.type]
+            )
+          );
         }
       }
       items.push({ kind: "grid", id: crypto.randomUUID(), elementKey: key, columns: cols, fields });
     } else if (validFieldTypes.has(el.type)) {
-      items.push(makeCanvasField(key, { type: el.type, props: el.props as Record<string, unknown> }, catalogMap[el.type]));
+      items.push(
+        makeCanvasField(
+          key,
+          { type: el.type, props: el.props as Record<string, unknown> },
+          catalogMap[el.type]
+        )
+      );
     }
   }
 
@@ -163,8 +185,16 @@ export function buildSpecFromBuilderState(
     description: state.formDescription,
     root: "root",
     elements: {
-      root: { type: "Stack", props: { direction: "vertical", gap: sc.gap, align: sc.align, justify: sc.justify }, children: [...rootChildren, "__submit__"] },
-      __submit__: { type: "Button", props: { label: bc.label, variant: bc.variant, disabled: bc.disabled }, on: { press: { action: "submit" } } },
+      root: {
+        type: "Stack",
+        props: { direction: "vertical", gap: sc.gap, align: sc.align, justify: sc.justify },
+        children: [...rootChildren, "__submit__"],
+      },
+      __submit__: {
+        type: "Button",
+        props: { label: bc.label, variant: bc.variant, disabled: bc.disabled },
+        on: { press: { action: "submit" } },
+      },
       ...elements,
     },
     state: stateDefaults,

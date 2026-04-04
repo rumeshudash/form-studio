@@ -1,13 +1,13 @@
 "use client";
 
-import { useSortable, SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
-import { useMemo } from "react";
+import { rectSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2, LayoutGrid } from "lucide-react";
+import { GripVertical, LayoutGrid, Trash2 } from "lucide-react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import type { CanvasField, CanvasGrid, FormFieldDefinition } from "../form-renderer/types";
 import { FieldPreview } from "./field-preview";
-import type { CanvasGrid, CanvasField, FormFieldDefinition } from "../form-renderer/types";
 
 interface GridPreviewProps {
   grid: CanvasGrid;
@@ -104,10 +104,7 @@ export function GridPreview({
       {/* Drop zone */}
       <div
         ref={setDropRef}
-        className={cn(
-          "p-2 transition-colors rounded-b-lg",
-          isOver && "bg-primary/5"
-        )}
+        className={cn("p-2 transition-colors rounded-b-lg", isOver && "bg-primary/5")}
       >
         {grid.fields.length === 0 ? (
           <div className="flex items-center justify-center py-6 border border-dashed border-border rounded-md text-xs text-muted-foreground">

@@ -1,17 +1,31 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  DndContext, pointerWithin, closestCenter, PointerSensor, useSensor, useSensors,
-  DragOverlay, type DragStartEvent, type DragOverEvent, type DragEndEvent, type CollisionDetection,
+  type CollisionDetection,
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
+  PointerSensor,
+  pointerWithin,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
-import { useFormBuilderState, findContainer } from "./builder-state";
-import { FieldPalette } from "./field-palette";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
+import type {
+  CanvasField,
+  FieldType,
+  FormFieldDefinition,
+  FormSchema,
+} from "../form-renderer/types";
+import { findContainer, useFormBuilderState } from "./builder-state";
 import { BuilderCanvas } from "./canvas";
 import { FieldConfigPanel } from "./field-config-panel";
+import { FieldPalette } from "./field-palette";
 import { FieldPreview } from "./field-preview";
-import { cn } from "@/lib/utils";
-import type { FormSchema, FieldType, FormFieldDefinition, CanvasField } from "../form-renderer/types";
 
 export interface FormBuilderProps {
   catalog: FormFieldDefinition[];
@@ -27,12 +41,20 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
   );
 
   const {
-    state, schema,
-    addField, addGrid, removeItem,
-    reorderItems, reorderFieldsInGrid, moveField,
-    updateFieldProp, updateGridColumns,
-    updateStackConfig, updateButtonConfig,
-    selectField, setFormMeta,
+    state,
+    schema,
+    addField,
+    addGrid,
+    removeItem,
+    reorderItems,
+    reorderFieldsInGrid,
+    moveField,
+    updateFieldProp,
+    updateGridColumns,
+    updateStackConfig,
+    updateButtonConfig,
+    selectField,
+    setFormMeta,
     fullCatalogMap,
   } = useFormBuilderState(catalogMap, defaultSchema ? { fromSchema: defaultSchema } : undefined);
 
@@ -64,7 +86,11 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
   const [activeField, setActiveField] = useState<CanvasField | null>(null);
   const [activePaletteLabel, setActivePaletteLabel] = useState<string | null>(null);
   const [overContainerId, setOverContainerId] = useState<string | null>(null);
-  const [dragItem, setDragItem] = useState<{ label: string; icon?: FormFieldDefinition["icon"]; isFromRoot?: boolean } | null>(null);
+  const [dragItem, setDragItem] = useState<{
+    label: string;
+    icon?: FormFieldDefinition["icon"];
+    isFromRoot?: boolean;
+  } | null>(null);
 
   function findField(fieldId: string): CanvasField | undefined {
     for (const item of state.items) {
@@ -110,7 +136,10 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
 
   function handleDragOver(event: DragOverEvent) {
     const { over } = event;
-    if (!over) { setOverContainerId(null); return; }
+    if (!over) {
+      setOverContainerId(null);
+      return;
+    }
 
     const overId = String(over.id);
     // Inner grid droppable → field would go into that grid
@@ -144,7 +173,8 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
 
       const isInner = overId.endsWith("-inner");
       const targetGridId = isInner ? overId.slice(0, -6) : null;
-      const overIsGrid = isInner && state.items.some((i) => i.kind === "grid" && i.id === targetGridId);
+      const overIsGrid =
+        isInner && state.items.some((i) => i.kind === "grid" && i.id === targetGridId);
       addField(data.fieldType as string, overIsGrid ? targetGridId! : undefined);
       return;
     }
@@ -158,7 +188,8 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
     const fromContainer = findContainer(state.items, activeId);
     const isInner = overId.endsWith("-inner");
     const targetGridId = isInner ? overId.slice(0, -6) : null;
-    const overIsGrid = !!targetGridId && state.items.some((i) => i.kind === "grid" && i.id === targetGridId);
+    const overIsGrid =
+      !!targetGridId && state.items.some((i) => i.kind === "grid" && i.id === targetGridId);
     const toContainer = overIsGrid ? targetGridId! : findContainer(state.items, overId);
 
     if (fromContainer === toContainer) {
@@ -174,12 +205,11 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
     }
   }
 
-  const selectedField =
-    state.selectedFieldId
-      ? (state.items
-          .flatMap((i) => (i.kind === "grid" ? i.fields : [i as CanvasField]))
-          .find((f) => f.id === state.selectedFieldId) ?? null)
-      : null;
+  const selectedField = state.selectedFieldId
+    ? (state.items
+        .flatMap((i) => (i.kind === "grid" ? i.fields : [i as CanvasField]))
+        .find((f) => f.id === state.selectedFieldId) ?? null)
+    : null;
 
   return (
     <div className={cn("flex flex-col h-full w-full overflow-hidden", className)}>

@@ -1,22 +1,22 @@
 "use client";
 
-import { createElement, useMemo } from "react";
-import {
-  StateProvider,
-  ActionProvider,
-  VisibilityProvider,
-  ValidationProvider,
-  Renderer,
-  defineRegistry,
-  useBoundProp,
-} from "@json-render/react";
 import { defineCatalog } from "@json-render/core";
+import {
+  ActionProvider,
+  defineRegistry,
+  Renderer,
+  StateProvider,
+  useBoundProp,
+  ValidationProvider,
+  VisibilityProvider,
+} from "@json-render/react";
 import { schema } from "@json-render/react/schema";
+import { createElement, useMemo } from "react";
 import { z } from "zod";
-import { useRhfStateStore } from "./use-rhf-state-store";
-import { STRUCTURAL_COMPONENTS } from "../shared/built-in-structural";
 import { cn } from "@/lib/utils";
-import type { FormSchema, FieldComponent } from "./types";
+import { STRUCTURAL_COMPONENTS } from "../shared/built-in-structural";
+import type { FieldComponent, FormSchema } from "./types";
+import { useRhfStateStore } from "./use-rhf-state-store";
 
 // ─── Structural catalog entries ───────────────────────────────────────────────
 
@@ -56,22 +56,19 @@ function createFieldRegistry(customFields: Record<string, FieldComponent> = {}) 
     components: {
       ...STRUCTURAL_CATALOG_ENTRIES,
       ...fieldCatalogEntries,
-    } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    } as any,
     actions: {},
   });
 
   const wrappedCustom = Object.fromEntries(
-    Object.entries(customFields).map(([key, Component]) => [
-      key,
-      wrapFieldComponent(Component),
-    ])
+    Object.entries(customFields).map(([key, Component]) => [key, wrapFieldComponent(Component)])
   );
 
   const { registry } = defineRegistry(catalog, {
     components: {
       ...STRUCTURAL_COMPONENTS,
       ...wrappedCustom,
-    } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    } as any,
   });
 
   return registry;
@@ -100,7 +97,8 @@ export function FormRenderer({
 
   const registry = useMemo(
     () => createFieldRegistry(customFields),
-    [] // eslint-disable-line react-hooks/exhaustive-deps
+    // biome-ignore lint/correctness/useExhaustiveDependencies: registry is intentionally created once; customFields changes are not supported at runtime
+    []
   );
 
   const handleSubmit = form.handleSubmit(async (data) => {
@@ -118,7 +116,11 @@ export function FormRenderer({
       >
         <VisibilityProvider>
           <ValidationProvider>
-            <form onSubmit={(e) => e.preventDefault()} className={cn("w-full", className)} noValidate>
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className={cn("w-full", className)}
+              noValidate
+            >
               <Renderer spec={schema} registry={registry} />
             </form>
           </ValidationProvider>

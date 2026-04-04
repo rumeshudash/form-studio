@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2, Box } from "lucide-react";
+import { Box, GripVertical, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CanvasField, FormFieldDefinition } from "../form-renderer/types";
 
@@ -25,8 +25,9 @@ export function FieldPreview({
   onRemove,
   invisible,
 }: FieldPreviewProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: field.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: field.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -43,7 +44,9 @@ export function FieldPreview({
       style={style}
       className={cn(
         "group flex items-center gap-2 rounded-lg border bg-background p-3 cursor-pointer select-none",
-        isSelected ? "border-primary ring-1 ring-primary" : "border-border hover:border-muted-foreground/40",
+        isSelected
+          ? "border-primary ring-1 ring-primary"
+          : "border-border hover:border-muted-foreground/40",
         isDragging && "opacity-50 shadow-lg z-50",
         invisible && "opacity-0 pointer-events-none",
         className

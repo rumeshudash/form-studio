@@ -1,18 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { Check, Copy } from "lucide-react";
+import { useCallback, useState } from "react";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { cn } from "@/lib/utils";
 import { FormBuilder } from "@/registry/form-builder";
 import { FormRenderer } from "@/registry/form-renderer";
-import { cn } from "@/lib/utils";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
+import type { FormSchema } from "@/registry/form-renderer/types";
 import { CUSTOM_COMPONENTS, CUSTOM_FIELD_DEFS } from "./custom-fields";
 import { SchemaViewer } from "./schema-viewer";
-import type { FormSchema } from "@/registry/form-renderer/types";
 
 type RightTab = "schema" | "preview";
 
@@ -31,11 +27,7 @@ export default function FormBuilderWithSchemaPage() {
   return (
     <ResizablePanelGroup orientation="horizontal" className="flex-1">
       <ResizablePanel defaultSize={70} minSize="55%" className="h-full">
-        <FormBuilder
-          className="h-full"
-          catalog={CUSTOM_FIELD_DEFS}
-          onChange={setSchema}
-        />
+        <FormBuilder className="h-full" catalog={CUSTOM_FIELD_DEFS} onChange={setSchema} />
       </ResizablePanel>
 
       <ResizableHandle withHandle />
@@ -73,11 +65,7 @@ export default function FormBuilderWithSchemaPage() {
                     : "border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none"
                 )}
               >
-                {copied ? (
-                  <Check className="h-3 w-3" />
-                ) : (
-                  <Copy className="h-3 w-3" />
-                )}
+                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 {copied ? "Copied" : "Copy"}
               </button>
             )}
@@ -86,9 +74,7 @@ export default function FormBuilderWithSchemaPage() {
           {/* Panel content */}
           <div className="flex-1 overflow-auto">
             {activeTab === "schema" ? (
-              <SchemaViewer
-                code={schema ? JSON.stringify(schema, null, 2) : null}
-              />
+              <SchemaViewer code={schema ? JSON.stringify(schema, null, 2) : null} />
             ) : (
               <div className="p-6">
                 {schema ? (

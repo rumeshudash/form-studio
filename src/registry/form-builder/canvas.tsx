@@ -1,13 +1,18 @@
 "use client";
 
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
-import { useMemo } from "react";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { LayoutGrid } from "lucide-react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import type {
+  CanvasField,
+  CanvasGrid,
+  CanvasItem,
+  FormFieldDefinition,
+} from "../form-renderer/types";
 import { FieldPreview } from "./field-preview";
 import { GridPreview } from "./grid-preview";
-import type { CanvasItem, CanvasField, CanvasGrid, FormFieldDefinition } from "../form-renderer/types";
 
 interface BuilderCanvasProps {
   items: CanvasItem[];
@@ -25,9 +30,17 @@ interface BuilderCanvasProps {
 }
 
 export function BuilderCanvas({
-  items, selectedFieldId, formTitle, catalogMap,
-  onSelectField, onRemoveItem, onUpdateGridColumns, onClickCanvas,
-  isDragOver, dragItem, draggingToGridId,
+  items,
+  selectedFieldId,
+  formTitle,
+  catalogMap,
+  onSelectField,
+  onRemoveItem,
+  onUpdateGridColumns,
+  onClickCanvas,
+  isDragOver,
+  dragItem,
+  draggingToGridId,
 }: BuilderCanvasProps) {
   const { setNodeRef } = useDroppable({ id: "root" });
   const topLevelIds = useMemo(

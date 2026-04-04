@@ -1,10 +1,10 @@
 "use client";
 
-import { Columns2, Columns3, GripVertical } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
+import { Columns2, Columns3, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { BUILT_IN_LAYOUT_DEFS } from "../shared/built-in-layout-defs";
 import type { FieldType, FormFieldDefinition } from "../form-renderer/types";
+import { BUILT_IN_LAYOUT_DEFS } from "../shared/built-in-layout-defs";
 
 // ─── Draggable chip ───────────────────────────────────────────────────────────
 
@@ -76,7 +76,9 @@ export function FieldPalette({ catalog, onAddField, onAddGrid }: FieldPalettePro
   return (
     <aside className="w-52 shrink-0 border-r border-border bg-muted/30 flex flex-col overflow-y-auto">
       <div className="px-3 py-3 border-b border-border">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fields</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Fields
+        </p>
       </div>
       <div className="flex flex-col gap-4 p-3">
         {/* Layout */}

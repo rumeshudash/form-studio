@@ -55,9 +55,6 @@ export function SchemaViewer({ code }: SchemaViewerProps) {
   }
 
   return (
-    <div
-      className="schema-viewer p-4 overflow-auto"
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <div className="schema-viewer p-4 overflow-auto" dangerouslySetInnerHTML={{ __html: html }} />
   );
 }
