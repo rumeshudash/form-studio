@@ -117,6 +117,19 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Shiki syntax highlighting */
+.schema-viewer .shiki,
+.schema-viewer .shiki code {
+  background-color: transparent !important;
+  font-size: 11px;
+  line-height: 1.6;
+  font-family: var(--font-mono);
+}
+
+.dark .schema-viewer .shiki span {
+  color: var(--shiki-dark) !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

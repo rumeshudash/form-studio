@@ -9,7 +9,7 @@ import type {
   ButtonConfig,
 } from "../form-renderer/types";
 
-export const DEFAULT_STACK_CONFIG: StackConfig = { gap: "md", align: "start", justify: "start" };
+export const DEFAULT_STACK_CONFIG: StackConfig = { gap: "md" };
 export const DEFAULT_BUTTON_CONFIG: ButtonConfig = { label: "Submit", variant: "primary", disabled: false };
 
 function getDefaultValue(field: CanvasField, def?: FormFieldDefinition): unknown {
@@ -97,8 +97,8 @@ export function buildBuilderStateFromSpec(
 
   const stackConfig: StackConfig = {
     gap: (rootEl?.props?.gap as StackConfig["gap"]) ?? DEFAULT_STACK_CONFIG.gap,
-    align: (rootEl?.props?.align as StackConfig["align"]) ?? DEFAULT_STACK_CONFIG.align,
-    justify: (rootEl?.props?.justify as StackConfig["justify"]) ?? DEFAULT_STACK_CONFIG.justify,
+    // align: (rootEl?.props?.align as StackConfig["align"]) ?? DEFAULT_STACK_CONFIG.align,
+    // justify: (rootEl?.props?.justify as StackConfig["justify"]) ?? DEFAULT_STACK_CONFIG.justify,
   };
 
   const buttonConfig: ButtonConfig = {

@@ -29,8 +29,8 @@ export type CanvasItem = CanvasField | CanvasGrid;
 
 export interface StackConfig {
   gap: "none" | "sm" | "md" | "lg" | "xl";
-  align: "start" | "center" | "end" | "stretch";
-  justify: "start" | "center" | "end" | "between" | "around";
+  align?: "start" | "center" | "end" | "stretch";
+  justify?: "start" | "center" | "end" | "between" | "around";
 }
 
 export interface ButtonConfig {

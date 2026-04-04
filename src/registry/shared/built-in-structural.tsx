@@ -20,11 +20,11 @@ const JUSTIFY = { start: "", center: "justify-center", end: "justify-end", betwe
 export const Stack: StructuralComponent = ({ props, children }) => (
   <div
     className={cn(
-      "flex",
+      "@container/stack flex",
       props.direction === "horizontal" ? "flex-row flex-wrap" : "flex-col",
       GAP[(props.gap as keyof typeof GAP) ?? "md"] ?? "gap-3",
-      ALIGN[(props.align as keyof typeof ALIGN) ?? "start"] ?? "items-start",
-      JUSTIFY[(props.justify as keyof typeof JUSTIFY) ?? ""] ?? "",
+      ALIGN[(props.align as keyof typeof ALIGN)] ?? "",
+      JUSTIFY[(props.justify as keyof typeof JUSTIFY)] ?? "",
       props.className as string
     )}
   >
@@ -45,8 +45,8 @@ export const Grid: StructuralComponent = ({ props, children }) => {
   return (
     <div
       className={cn(
-        "grid",
-        GRID_COLS[n] ?? "grid-cols-1",
+        "grid @max-sm/stack:grid-cols-1",
+        GRID_COLS[n],
         GRID_GAP[(props.gap as keyof typeof GRID_GAP) ?? "md"] ?? "gap-3",
         props.className as string
       )}

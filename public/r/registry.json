@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "form-builder",
-  "homepage": "https://github.com/rumeshudash/form-builder",
+  "name": "form-studio",
+  "homepage": "https://github.com/rumeshudash/form-studio",
   "items": [
     {
       "name": "form-renderer",
@@ -100,6 +100,52 @@
           "target": "components/form-builder/shared/built-in-layout-defs.ts"
         }
       ]
+    },
+    {
+      "name": "form-builder-with-schema",
+      "type": "registry:block",
+      "title": "Form Builder with Schema & Preview",
+      "description": "Drag-and-drop form builder with a live JSON schema panel (copyable) and form preview.",
+      "dependencies": [
+        "@json-render/react",
+        "@json-render/core",
+        "react-hook-form",
+        "zod",
+        "@dnd-kit/core",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities",
+        "shiki"
+      ],
+      "registryDependencies": [
+        "form-builder",
+        "resizable",
+        "input",
+        "textarea",
+        "label",
+        "select",
+        "checkbox",
+        "radio-group",
+        "switch",
+        "slider"
+      ],
+      "files": [
+        {
+          "path": "src/app/blocks/form-builder-with-schema/page.tsx",
+          "type": "registry:page",
+          "target": "app/form-builder/page.tsx"
+        },
+        {
+          "path": "src/app/blocks/form-builder-with-schema/custom-fields.tsx",
+          "type": "registry:component",
+          "target": "app/form-builder/custom-fields.tsx"
+        },
+        {
+          "path": "src/app/blocks/form-builder-with-schema/schema-viewer.tsx",
+          "type": "registry:component",
+          "target": "app/form-builder/schema-viewer.tsx"
+        }
+      ]
     }
   ]
 }
+
