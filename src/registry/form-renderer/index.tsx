@@ -1,6 +1,7 @@
 "use client";
 
 import { defineCatalog } from "@json-render/core";
+import type { StateModel, StateStore } from "@json-render/react";
 import {
   ActionProvider,
   defineRegistry,
@@ -11,14 +12,224 @@ import {
   VisibilityProvider,
 } from "@json-render/react";
 import { schema } from "@json-render/react/schema";
-import { createElement, useMemo } from "react";
+import { createElement, useMemo, useRef } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Button as ShadcnButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { STRUCTURAL_COMPONENTS } from "../shared/built-in-structural";
 import type { FieldComponent, FormSchema } from "./types";
-import { useRhfStateStore } from "./use-rhf-state-store";
 
-// ─── Structural catalog entries ───────────────────────────────────────────────
+// ─── useRhfStateStore ─────────────────────────────────────────────────────────
+
+function getByJsonPointer(obj: Record<string, unknown>, path: string): unknown {
+  if (!path || path === "/") return obj;
+  const parts = path.replace(/^\//, "").split("/");
+  let current: unknown = obj;
+  for (const part of parts) {
+    if (current == null || typeof current !== "object") return undefined;
+    current = (current as Record<string, unknown>)[part];
+  }
+  return current;
+}
+
+function setByJsonPointer(
+  obj: Record<string, unknown>,
+  path: string,
+  value: unknown
+): Record<string, unknown> {
+  if (!path || path === "/") return obj;
+  const parts = path.replace(/^\//, "").split("/");
+  const next = { ...obj };
+  let current: Record<string, unknown> = next;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i];
+    current[part] = { ...(current[part] as Record<string, unknown>) };
+    current = current[part] as Record<string, unknown>;
+  }
+  current[parts[parts.length - 1]] = value;
+  return next;
+}
+
+function useRhfStateStore(defaultValues: Record<string, unknown> = {}) {
+  const form = useForm<Record<string, unknown>>({ defaultValues, mode: "onBlur" });
+
+  const listenersRef = useRef(new Set<() => void>());
+  const snapshotRef = useRef<StateModel>({ ...defaultValues });
+
+  form.watch((values) => {
+    snapshotRef.current = values as StateModel;
+    listenersRef.current.forEach((l) => l());
+  });
+
+  const store = useMemo<StateStore>(
+    () => ({
+      get: (path) => getByJsonPointer(snapshotRef.current, path),
+
+      set: (path, value) => {
+        const key = path.replace(/^\//, "");
+        form.setValue(key as never, value as never, { shouldValidate: true, shouldDirty: true });
+        snapshotRef.current = setByJsonPointer(snapshotRef.current, path, value);
+        listenersRef.current.forEach((l) => l());
+      },
+
+      update: (updates) => {
+        let next = snapshotRef.current;
+        Object.entries(updates).forEach(([path, value]) => {
+          const key = path.replace(/^\//, "");
+          form.setValue(key as never, value as never, { shouldValidate: true, shouldDirty: true });
+          next = setByJsonPointer(next, path, value);
+        });
+        snapshotRef.current = next;
+        listenersRef.current.forEach((l) => l());
+      },
+
+      getSnapshot: () => snapshotRef.current,
+
+      subscribe: (listener) => {
+        listenersRef.current.add(listener);
+        return () => listenersRef.current.delete(listener);
+      },
+    }),
+    // biome-ignore lint/correctness/useExhaustiveDependencies: store is created once on mount; initialValues changes are intentionally ignored
+    []
+  );
+
+  return { store, form };
+}
+
+// ─── Built-in structural components ──────────────────────────────────────────
+
+type StructuralComponent<P extends Record<string, unknown> = Record<string, unknown>> = (args: {
+  props: P;
+  children?: React.ReactNode;
+  emit?: (event: string) => void;
+}) => React.ReactElement | null;
+
+const GAP = { none: "gap-0", sm: "gap-2", md: "gap-3", lg: "gap-4", xl: "gap-6" } as const;
+const ALIGN = {
+  start: "items-start",
+  center: "items-center",
+  end: "items-end",
+  stretch: "items-stretch",
+} as const;
+const JUSTIFY = {
+  start: "",
+  center: "justify-center",
+  end: "justify-end",
+  between: "justify-between",
+  around: "justify-around",
+} as const;
+
+const Stack: StructuralComponent = ({ props, children }) => (
+  <div
+    className={cn(
+      "@container/stack flex",
+      props.direction === "horizontal" ? "flex-row flex-wrap" : "flex-col",
+      GAP[(props.gap as keyof typeof GAP) ?? "md"] ?? "gap-3",
+      ALIGN[props.align as keyof typeof ALIGN] ?? "",
+      JUSTIFY[props.justify as keyof typeof JUSTIFY] ?? "",
+      props.className as string
+    )}
+  >
+    {children}
+  </div>
+);
+
+const GRID_COLS: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+  5: "grid-cols-5",
+  6: "grid-cols-6",
+};
+const GRID_GAP = { sm: "gap-2", md: "gap-3", lg: "gap-4", xl: "gap-6" } as const;
+
+const Grid: StructuralComponent = ({ props, children }) => {
+  const n = Math.max(1, Math.min(6, (props.columns as number) ?? 1));
+  return (
+    <div
+      className={cn(
+        "grid @max-sm/stack:grid-cols-1",
+        GRID_COLS[n],
+        GRID_GAP[(props.gap as keyof typeof GRID_GAP) ?? "md"] ?? "gap-3",
+        props.className as string
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+const BTN_VARIANT_MAP: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline" | "ghost"
+> = {
+  primary: "default",
+  secondary: "secondary",
+  danger: "destructive",
+  outline: "outline",
+  ghost: "ghost",
+};
+
+const Button: StructuralComponent = ({ props, emit }) => (
+  <ShadcnButton
+    type="submit"
+    variant={BTN_VARIANT_MAP[(props.variant as string) ?? "primary"] ?? "default"}
+    disabled={(props.disabled as boolean) ?? false}
+    onClick={() => emit?.("press")}
+    className={props.className as string}
+  >
+    {(props.label as string) ?? "Submit"}
+  </ShadcnButton>
+);
+
+const HEADING_CLASS: Record<string, string> = {
+  h1: "text-2xl font-bold",
+  h2: "text-lg font-semibold",
+  h3: "text-base font-semibold",
+  h4: "text-sm font-semibold",
+};
+
+const Heading: StructuralComponent = ({ props }) => {
+  const level = (props.level as string) ?? "h2";
+  const Tag = (["h1", "h2", "h3", "h4"].includes(level) ? level : "h2") as
+    | "h1"
+    | "h2"
+    | "h3"
+    | "h4";
+  return (
+    <Tag className={cn(HEADING_CLASS[level] ?? HEADING_CLASS.h2, props.className as string)}>
+      {props.text as string}
+    </Tag>
+  );
+};
+
+const TEXT_CLASS: Record<string, string> = {
+  default: "text-sm",
+  muted: "text-sm text-muted-foreground",
+  caption: "text-xs text-muted-foreground",
+  lead: "text-xl text-muted-foreground",
+  code: "font-mono text-sm bg-muted px-1.5 py-0.5 rounded",
+};
+
+const Text: StructuralComponent = ({ props }) => {
+  const variant = (props.variant as string) ?? "default";
+  if (variant === "code") {
+    return (
+      <code className={cn(TEXT_CLASS.code, props.className as string)}>{props.text as string}</code>
+    );
+  }
+  return (
+    <p className={cn(TEXT_CLASS[variant] ?? TEXT_CLASS.default, props.className as string)}>
+      {props.text as string}
+    </p>
+  );
+};
+
+const STRUCTURAL_COMPONENTS = { Stack, Grid, Button, Heading, Text };
+
+// ─── Registry factory ─────────────────────────────────────────────────────────
 
 const STRUCTURAL_CATALOG_ENTRIES = Object.fromEntries(
   Object.keys(STRUCTURAL_COMPONENTS).map((key) => [
@@ -26,8 +237,6 @@ const STRUCTURAL_CATALOG_ENTRIES = Object.fromEntries(
     { props: z.record(z.string(), z.unknown()), description: key, slots: ["default"] },
   ])
 ) as Record<string, { props: ReturnType<typeof z.record>; description: string; slots: string[] }>;
-
-// ─── FieldComponent wrapper ───────────────────────────────────────────────────
 
 function wrapFieldComponent(Component: FieldComponent) {
   return function FieldWrapper({
@@ -41,8 +250,6 @@ function wrapFieldComponent(Component: FieldComponent) {
     return createElement(Component, { ...props, value, onChange: setValue });
   };
 }
-
-// ─── Registry factory ─────────────────────────────────────────────────────────
 
 function createFieldRegistry(customFields: Record<string, FieldComponent> = {}) {
   const fieldCatalogEntries = Object.fromEntries(
@@ -65,10 +272,7 @@ function createFieldRegistry(customFields: Record<string, FieldComponent> = {}) 
   );
 
   const { registry } = defineRegistry(catalog, {
-    components: {
-      ...STRUCTURAL_COMPONENTS,
-      ...wrappedCustom,
-    } as any,
+    components: { ...STRUCTURAL_COMPONENTS, ...wrappedCustom } as any,
   });
 
   return registry;

@@ -4,7 +4,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { Columns2, Columns3, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FieldType, FormFieldDefinition } from "../form-renderer/types";
-import { BUILT_IN_LAYOUT_DEFS } from "../shared/built-in-layout-defs";
+import { BUILT_IN_LAYOUT_DEFS } from "./built-in-layout-defs";
 
 // ─── Draggable chip ───────────────────────────────────────────────────────────
 

@@ -25,16 +25,6 @@
           "path": "src/registry/form-renderer/types.ts",
           "type": "registry:component",
           "target": "components/form-renderer/types.ts"
-        },
-        {
-          "path": "src/registry/form-renderer/use-rhf-state-store.ts",
-          "type": "registry:component",
-          "target": "components/form-renderer/use-rhf-state-store.ts"
-        },
-        {
-          "path": "src/registry/shared/built-in-structural.tsx",
-          "type": "registry:component",
-          "target": "components/form-renderer/shared/built-in-structural.tsx"
         }
       ]
     },
@@ -87,19 +77,9 @@
           "target": "components/form-builder/field-preview.tsx"
         },
         {
-          "path": "src/registry/form-builder/grid-preview.tsx",
+          "path": "src/registry/form-builder/built-in-layout-defs.ts",
           "type": "registry:component",
-          "target": "components/form-builder/grid-preview.tsx"
-        },
-        {
-          "path": "src/registry/shared/spec-builder.ts",
-          "type": "registry:component",
-          "target": "components/form-builder/shared/spec-builder.ts"
-        },
-        {
-          "path": "src/registry/shared/built-in-layout-defs.ts",
-          "type": "registry:component",
-          "target": "components/form-builder/shared/built-in-layout-defs.ts"
+          "target": "components/form-builder/built-in-layout-defs.ts"
         }
       ]
     },
@@ -150,4 +130,3 @@
     }
   ]
 }
-
