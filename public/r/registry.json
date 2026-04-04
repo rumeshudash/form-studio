@@ -1,0 +1,105 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "form-builder",
+  "homepage": "https://github.com/rumeshudash/form-builder",
+  "items": [
+    {
+      "name": "form-renderer",
+      "type": "registry:component",
+      "title": "Form Renderer",
+      "description": "Renders a JSON form schema using @json-render with react-hook-form state management.",
+      "dependencies": [
+        "@json-render/react",
+        "@json-render/core",
+        "react-hook-form",
+        "zod"
+      ],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "src/registry/form-renderer/index.tsx",
+          "type": "registry:component",
+          "target": "components/form-renderer/index.tsx"
+        },
+        {
+          "path": "src/registry/form-renderer/types.ts",
+          "type": "registry:component",
+          "target": "components/form-renderer/types.ts"
+        },
+        {
+          "path": "src/registry/form-renderer/use-rhf-state-store.ts",
+          "type": "registry:component",
+          "target": "components/form-renderer/use-rhf-state-store.ts"
+        },
+        {
+          "path": "src/registry/shared/built-in-structural.tsx",
+          "type": "registry:component",
+          "target": "components/form-renderer/shared/built-in-structural.tsx"
+        }
+      ]
+    },
+    {
+      "name": "form-builder",
+      "type": "registry:component",
+      "title": "Form Builder",
+      "description": "Drag-and-drop form builder that outputs a json-render compatible FormSchema.",
+      "dependencies": [
+        "@json-render/react",
+        "@json-render/core",
+        "react-hook-form",
+        "zod",
+        "@dnd-kit/core",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities"
+      ],
+      "registryDependencies": ["form-renderer"],
+      "files": [
+        {
+          "path": "src/registry/form-builder/index.tsx",
+          "type": "registry:component",
+          "target": "components/form-builder/index.tsx"
+        },
+        {
+          "path": "src/registry/form-builder/builder-state.ts",
+          "type": "registry:component",
+          "target": "components/form-builder/builder-state.ts"
+        },
+        {
+          "path": "src/registry/form-builder/canvas.tsx",
+          "type": "registry:component",
+          "target": "components/form-builder/canvas.tsx"
+        },
+        {
+          "path": "src/registry/form-builder/field-palette.tsx",
+          "type": "registry:component",
+          "target": "components/form-builder/field-palette.tsx"
+        },
+        {
+          "path": "src/registry/form-builder/field-config-panel.tsx",
+          "type": "registry:component",
+          "target": "components/form-builder/field-config-panel.tsx"
+        },
+        {
+          "path": "src/registry/form-builder/field-preview.tsx",
+          "type": "registry:component",
+          "target": "components/form-builder/field-preview.tsx"
+        },
+        {
+          "path": "src/registry/form-builder/grid-preview.tsx",
+          "type": "registry:component",
+          "target": "components/form-builder/grid-preview.tsx"
+        },
+        {
+          "path": "src/registry/shared/spec-builder.ts",
+          "type": "registry:component",
+          "target": "components/form-builder/shared/spec-builder.ts"
+        },
+        {
+          "path": "src/registry/shared/built-in-layout-defs.ts",
+          "type": "registry:component",
+          "target": "components/form-builder/shared/built-in-layout-defs.ts"
+        }
+      ]
+    }
+  ]
+}
