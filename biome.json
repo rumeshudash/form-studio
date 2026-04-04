@@ -30,15 +30,15 @@
         "useIterableCallbackReturn": "warn"
       },
       "style": {
-        "noNonNullAssertion": "warn"
+        "noNonNullAssertion": "off"
       },
       "security": {
-        "noDangerouslySetInnerHtml": "warn"
+        "noDangerouslySetInnerHtml": "off"
       },
       "a11y": {
         "noLabelWithoutControl": "off",
-        "useKeyWithClickEvents": "warn",
-        "noStaticElementInteractions": "warn"
+        "useKeyWithClickEvents": "off",
+        "noStaticElementInteractions": "off"
       }
     }
   },

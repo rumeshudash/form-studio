@@ -241,9 +241,9 @@ export function useFormBuilderState(
     setState((prev) => ({ ...prev, [key]: value }));
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional subset — fullCatalogMap is stable and excluded to avoid unnecessary rebuilds
   const schema = useMemo(
     () => buildSpecFromBuilderState(state, fullCatalogMap),
-    // biome-ignore lint/correctness/useExhaustiveDependencies: intentional subset — fullCatalogMap is stable and excluded to avoid unnecessary rebuilds
     [state.items, state.formTitle, state.formDescription, state.stackConfig, state.buttonConfig]
   );
 
@@ -335,7 +335,7 @@ export function buildBuilderStateFromSpec(
   validFieldTypes: Set<string>,
   catalogMap: Record<string, FormFieldDefinition> = {}
 ): Partial<FormBuilderState> {
-  const rootElement = schema.elements?.["root"];
+  const rootElement = schema.elements?.root;
   const rootChildren = (rootElement?.children ?? []).filter((k) => k !== "__submit__");
 
   const items: CanvasItem[] = [];
@@ -371,8 +371,8 @@ export function buildBuilderStateFromSpec(
     }
   }
 
-  const rootEl = schema.elements?.["root"];
-  const submitEl = schema.elements?.["__submit__"];
+  const rootEl = schema.elements?.root;
+  const submitEl = schema.elements?.__submit__;
 
   const stackConfig: StackConfig = {
     gap: (rootEl?.props?.gap as StackConfig["gap"]) ?? DEFAULT_STACK_CONFIG.gap,

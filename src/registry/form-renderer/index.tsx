@@ -58,9 +58,12 @@ function useRhfStateStore(defaultValues: Record<string, unknown> = {}) {
 
   form.watch((values) => {
     snapshotRef.current = values as StateModel;
-    listenersRef.current.forEach((l) => l());
+    listenersRef.current.forEach((l) => {
+      l();
+    });
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: store is created once on mount; initialValues changes are intentionally ignored
   const store = useMemo<StateStore>(
     () => ({
       get: (path) => getByJsonPointer(snapshotRef.current, path),
@@ -69,7 +72,9 @@ function useRhfStateStore(defaultValues: Record<string, unknown> = {}) {
         const key = path.replace(/^\//, "");
         form.setValue(key as never, value as never, { shouldValidate: true, shouldDirty: true });
         snapshotRef.current = setByJsonPointer(snapshotRef.current, path, value);
-        listenersRef.current.forEach((l) => l());
+        listenersRef.current.forEach((l) => {
+          l();
+        });
       },
 
       update: (updates) => {
@@ -80,7 +85,9 @@ function useRhfStateStore(defaultValues: Record<string, unknown> = {}) {
           next = setByJsonPointer(next, path, value);
         });
         snapshotRef.current = next;
-        listenersRef.current.forEach((l) => l());
+        listenersRef.current.forEach((l) => {
+          l();
+        });
       },
 
       getSnapshot: () => snapshotRef.current,
@@ -90,7 +97,6 @@ function useRhfStateStore(defaultValues: Record<string, unknown> = {}) {
         return () => listenersRef.current.delete(listener);
       },
     }),
-    // biome-ignore lint/correctness/useExhaustiveDependencies: store is created once on mount; initialValues changes are intentionally ignored
     []
   );
 
@@ -299,11 +305,8 @@ export function FormRenderer({
   const initialValues = { ...schema.state, ...defaultValues };
   const { store, form } = useRhfStateStore(initialValues);
 
-  const registry = useMemo(
-    () => createFieldRegistry(customFields),
-    // biome-ignore lint/correctness/useExhaustiveDependencies: registry is intentionally created once; customFields changes are not supported at runtime
-    []
-  );
+  // biome-ignore lint/correctness/useExhaustiveDependencies: registry is intentionally created once; customFields changes are not supported at runtime
+  const registry = useMemo(() => createFieldRegistry(customFields), []);
 
   const handleSubmit = form.handleSubmit(async (data) => {
     await onSubmit(data);
