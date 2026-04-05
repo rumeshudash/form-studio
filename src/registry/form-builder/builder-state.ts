@@ -6,6 +6,7 @@ import type {
   CanvasField,
   CanvasGrid,
   CanvasItem,
+  FieldCondition,
   FormBuilderState,
   FormField,
   FormFieldDefinition,
@@ -213,6 +214,24 @@ export function useFormBuilderState(
     }));
   }, []);
 
+  const updateFieldConditions = useCallback((id: string, conditions: FieldCondition[]) => {
+    setState((prev) => ({
+      ...prev,
+      items: prev.items.map((item): CanvasItem => {
+        if (item.kind === "field" && item.id === id) {
+          return { ...item, conditions };
+        }
+        if (item.kind === "grid") {
+          return {
+            ...item,
+            fields: item.fields.map((f) => (f.id === id ? { ...f, conditions } : f)),
+          };
+        }
+        return item;
+      }),
+    }));
+  }, []);
+
   const updateGridColumns = useCallback((gridId: string, columns: 2 | 3) => {
     setState((prev) => ({
       ...prev,
@@ -260,6 +279,7 @@ export function useFormBuilderState(
     reorderFieldsInGrid,
     moveField,
     updateFieldProp,
+    updateFieldConditions,
     updateGridColumns,
     updateStackConfig,
     updateButtonConfig,
@@ -285,7 +305,6 @@ function getDefaultValue(field: CanvasField, def?: FormFieldDefinition): unknown
   return "";
 }
 
-
 function buildFormField(
   field: CanvasField,
   catalogMap: Record<string, FormFieldDefinition>
@@ -293,13 +312,14 @@ function buildFormField(
   const def = catalogMap[field.fieldType];
   const { name, value: _value, ...restProps } = field.props;
   if (def?.isStructural) {
-    return { type: field.fieldType, props: restProps };
+    return { type: field.fieldType, props: restProps, conditions: field.conditions };
   }
   return {
     type: field.fieldType,
     name: name as string,
     defaultValue: getDefaultValue(field, def),
     props: restProps,
+    conditions: field.conditions,
   };
 }
 
@@ -312,6 +332,7 @@ function makeCanvasFieldFromFormField(field: FormField): CanvasField {
     elementKey: `field_${crypto.randomUUID().slice(0, 8)}`,
     fieldType: field.type,
     props,
+    conditions: field.conditions,
   };
 }
 

@@ -41,10 +41,12 @@ const TextInput: FieldComponent = ({
   onChange,
   placeholder,
   type,
+  disabled,
 }: FieldComponentProps & {
   label?: string;
   placeholder?: string;
   type?: string;
+  disabled?: boolean;
 }) => (
   <div className="flex flex-col gap-1.5">
     {label && <Label>{label}</Label>}
@@ -52,6 +54,7 @@ const TextInput: FieldComponent = ({
       type={(type as string) ?? "text"}
       value={(value as string) ?? ""}
       placeholder={placeholder as string}
+      disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
     />
   </div>
@@ -63,10 +66,12 @@ const TextareaField: FieldComponent = ({
   onChange,
   placeholder,
   rows,
+  disabled,
 }: FieldComponentProps & {
   label?: string;
   placeholder?: string;
   rows?: number;
+  disabled?: boolean;
 }) => (
   <div className="flex flex-col gap-1.5">
     {label && <Label>{label}</Label>}
@@ -74,6 +79,7 @@ const TextareaField: FieldComponent = ({
       value={(value as string) ?? ""}
       placeholder={placeholder as string}
       rows={(rows as number) ?? 3}
+      disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
     />
   </div>
@@ -85,14 +91,20 @@ const SelectField: FieldComponent = ({
   onChange,
   options,
   placeholder,
+  disabled,
 }: FieldComponentProps & {
   label?: string;
   options?: string[];
   placeholder?: string;
+  disabled?: boolean;
 }) => (
   <div className="flex flex-col gap-1.5">
     {label && <Label>{label}</Label>}
-    <Select value={(value as string) ?? ""} onValueChange={(val) => onChange(val)}>
+    <Select
+      value={(value as string) ?? ""}
+      onValueChange={(val) => onChange(val)}
+      disabled={disabled}
+    >
       <SelectTrigger className="w-full">
         <SelectValue placeholder={(placeholder as string) ?? "Select…"} />
       </SelectTrigger>
@@ -111,10 +123,12 @@ const CheckboxField: FieldComponent = ({
   label,
   value,
   onChange,
-}: FieldComponentProps & { label?: string }) => (
+  disabled,
+}: FieldComponentProps & { label?: string; disabled?: boolean }) => (
   <div className="flex items-center gap-2">
     <Checkbox
       checked={(value as boolean) ?? false}
+      disabled={disabled}
       onCheckedChange={(checked) => onChange(checked)}
     />
     {label && <Label className="cursor-pointer">{label}</Label>}
@@ -126,8 +140,9 @@ const RadioGroupField: FieldComponent = ({
   value,
   onChange,
   options,
-}: FieldComponentProps & { label?: string; options?: string[] }) => (
-  <div className="flex flex-col gap-2">
+  disabled,
+}: FieldComponentProps & { label?: string; options?: string[]; disabled?: boolean }) => (
+  <div className={cn("flex flex-col gap-2", disabled && "pointer-events-none opacity-50")}>
     {label && <Label>{label}</Label>}
     <RadioGroup
       value={(value as string) ?? ""}
@@ -150,10 +165,12 @@ const SwitchField: FieldComponent = ({
   label,
   value,
   onChange,
-}: FieldComponentProps & { label?: string }) => (
+  disabled,
+}: FieldComponentProps & { label?: string; disabled?: boolean }) => (
   <div className="flex items-center gap-2">
     <Switch
       checked={(value as boolean) ?? false}
+      disabled={disabled}
       onCheckedChange={(checked) => onChange(checked)}
     />
     {label && <Label className="cursor-pointer">{label}</Label>}
@@ -167,11 +184,13 @@ const SliderField: FieldComponent = ({
   min,
   max,
   step,
+  disabled,
 }: FieldComponentProps & {
   label?: string;
   min?: number;
   max?: number;
   step?: number;
+  disabled?: boolean;
 }) => {
   const minVal = (min as number) ?? 0;
   const maxVal = (max as number) ?? 100;
@@ -184,6 +203,7 @@ const SliderField: FieldComponent = ({
       </div>
       <Slider
         value={[numVal]}
+        disabled={disabled}
         onValueChange={(vals) => onChange(Array.isArray(vals) ? vals[0] : vals)}
         min={minVal}
         max={maxVal}
@@ -222,7 +242,8 @@ const DateInput: FieldComponent = ({
   onChange,
   min,
   max,
-}: FieldComponentProps & { label?: string; min?: string; max?: string }) => (
+  disabled,
+}: FieldComponentProps & { label?: string; min?: string; max?: string; disabled?: boolean }) => (
   <div className="flex flex-col gap-1.5">
     {label && <Label>{label}</Label>}
     <input
@@ -230,6 +251,7 @@ const DateInput: FieldComponent = ({
       value={(value as string) ?? ""}
       min={min}
       max={max}
+      disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
         "h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm",
@@ -244,11 +266,12 @@ const RatingInput: FieldComponent = ({
   value,
   onChange,
   max = 5,
-}: FieldComponentProps & { label?: string; max?: number }) => {
+  disabled,
+}: FieldComponentProps & { label?: string; max?: number; disabled?: boolean }) => {
   const current = Number(value) || 0;
   const stars = (max as number) ?? 5;
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={cn("flex flex-col gap-1.5", disabled && "pointer-events-none opacity-50")}>
       {label && <Label>{label}</Label>}
       <div className="flex items-center gap-1">
         {Array.from({ length: stars }, (_, i) => i + 1).map((star) => (

@@ -80,6 +80,11 @@
           "path": "src/registry/form-builder/built-in-layout-defs.ts",
           "type": "registry:component",
           "target": "components/form-builder/built-in-layout-defs.ts"
+        },
+        {
+          "path": "src/registry/form-builder/condition-builder.tsx",
+          "type": "registry:component",
+          "target": "components/form-builder/condition-builder.tsx"
         }
       ]
     },

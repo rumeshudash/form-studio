@@ -1,10 +1,24 @@
+// ─── Conditional logic types ──────────────────────────────────────────────────
+
+export type ConditionOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "truthy" | "falsy";
+export type ConditionAction = "show" | "hide" | "enable" | "disable" | "compute";
+
+export interface FieldCondition {
+  triggerField: string;
+  operator: ConditionOperator;
+  value?: string | number | boolean;
+  action: ConditionAction;
+  computeValue?: string; // literal value or "@fieldName" to copy from another field
+}
+
 // ─── Developer-facing schema ──────────────────────────────────────────────────
 
 export interface FormField {
-  type: string;           // component type ("TextInput", "SelectField", etc.)
-  name?: string;          // state key — required for non-structural fields
+  type: string; // component type ("TextInput", "SelectField", etc.)
+  name?: string; // state key — required for non-structural fields
   defaultValue?: unknown; // initial form value (defaults to "")
   props?: Record<string, unknown>; // label, placeholder, options, and any other component props
+  conditions?: FieldCondition[];
 }
 
 export interface FormRow {
@@ -44,6 +58,7 @@ export interface CanvasField {
   elementKey: string;
   fieldType: FieldType;
   props: Record<string, unknown>;
+  conditions?: FieldCondition[];
 }
 
 export interface CanvasGrid {
