@@ -8,16 +8,14 @@ import { CUSTOM_COMPONENTS } from "../blocks/form-builder-with-schema/custom-fie
 const SAMPLE_SCHEMA: FormSchema = {
   title: "Contact Form",
   fields: [
-    { type: "TextInput", name: "name", label: "Full Name", placeholder: "John Doe" },
-    { type: "TextInput", name: "email", label: "Email", placeholder: "john@example.com" },
+    { type: "TextInput", name: "name", props: { label: "Full Name", placeholder: "John Doe" } },
+    { type: "TextInput", name: "email", props: { label: "Email", placeholder: "john@example.com", type: "email" } },
     {
       type: "SelectField",
       name: "role",
-      label: "Role",
-      options: ["Developer", "Designer", "Manager", "Other"],
-      placeholder: "Select your role...",
+      props: { label: "Role", options: ["Developer", "Designer", "Manager", "Other"], placeholder: "Select your role..." },
     },
-    { type: "Textarea", name: "message", label: "Message", placeholder: "Your message..." },
+    { type: "Textarea", name: "message", props: { label: "Message", placeholder: "Your message..." } },
   ],
   submit: { label: "Submit" },
 };

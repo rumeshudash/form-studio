@@ -285,11 +285,6 @@ function getDefaultValue(field: CanvasField, def?: FormFieldDefinition): unknown
   return "";
 }
 
-function getBoundProp(fieldType: string, def?: FormFieldDefinition): string {
-  if (def?.boundProp) return def.boundProp;
-  if (fieldType === "Checkbox" || fieldType === "Switch") return "checked";
-  return "value";
-}
 
 function buildFormField(
   field: CanvasField,
@@ -298,29 +293,24 @@ function buildFormField(
   const def = catalogMap[field.fieldType];
   const { name, value: _value, ...restProps } = field.props;
   if (def?.isStructural) {
-    return { type: field.fieldType, ...restProps };
+    return { type: field.fieldType, props: restProps };
   }
-  const result: FormField = {
+  return {
     type: field.fieldType,
     name: name as string,
     defaultValue: getDefaultValue(field, def),
-    ...restProps,
+    props: restProps,
   };
-  // Only include boundProp if non-default, so it doesn't clutter the schema
-  const bp = getBoundProp(field.fieldType, def);
-  if (bp !== "value") result.boundProp = bp;
-  return result;
 }
 
 function makeCanvasFieldFromFormField(field: FormField): CanvasField {
-  const { type, name, defaultValue: _dv, boundProp: _bp, ...restProps } = field;
-  const props: Record<string, unknown> = { ...restProps };
-  if (name) props.name = name;
+  const props: Record<string, unknown> = { ...(field.props ?? {}) };
+  if (field.name) props.name = field.name;
   return {
     kind: "field",
     id: crypto.randomUUID(),
     elementKey: `field_${crypto.randomUUID().slice(0, 8)}`,
-    fieldType: type,
+    fieldType: field.type,
     props,
   };
 }

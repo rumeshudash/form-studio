@@ -4,7 +4,7 @@ export interface FormField {
   type: string;           // component type ("TextInput", "SelectField", etc.)
   name?: string;          // state key — required for non-structural fields
   defaultValue?: unknown; // initial form value (defaults to "")
-  [key: string]: unknown; // label, placeholder, options, and any other props
+  props?: Record<string, unknown>; // label, placeholder, options, and any other component props
 }
 
 export interface FormRow {

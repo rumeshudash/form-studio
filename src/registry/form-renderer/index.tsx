@@ -294,7 +294,7 @@ function schemaToSpec(schema: FormSchema): Spec & { state: Record<string, unknow
 
   function processField(field: FormField): string {
     const key = `f${idx++}`;
-    const { type, name, defaultValue, ...props } = field;
+    const { type, name, defaultValue, props = {} } = field;
     if (!name) {
       elements[key] = { type, props };
     } else {
