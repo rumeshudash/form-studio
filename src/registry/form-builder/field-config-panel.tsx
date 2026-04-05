@@ -5,14 +5,18 @@ import type {
   ButtonConfig,
   CanvasField,
   ConfigurableProp,
+  FieldCondition,
   FormFieldDefinition,
   StackConfig,
 } from "../form-renderer/types";
+import { ConditionBuilder } from "./condition-builder";
 
 interface FieldConfigPanelProps {
   field: CanvasField | null;
   catalogMap: Record<string, FormFieldDefinition>;
   onUpdateProp: (id: string, propKey: string, value: unknown) => void;
+  onUpdateConditions: (id: string, conditions: FieldCondition[]) => void;
+  allFields: Array<{ name: string; label: string; fieldType: string }>;
   stackConfig: StackConfig;
   buttonConfig: ButtonConfig;
   onUpdateStackConfig: <K extends keyof StackConfig>(key: K, value: StackConfig[K]) => void;
@@ -23,6 +27,8 @@ export function FieldConfigPanel({
   field,
   catalogMap,
   onUpdateProp,
+  onUpdateConditions,
+  allFields,
   stackConfig,
   buttonConfig,
   onUpdateStackConfig,
@@ -51,6 +57,15 @@ export function FieldConfigPanel({
               onChange={(value) => onUpdateProp(field.id, prop.key, value)}
             />
           ))}
+          <div className="border-t border-border pt-3">
+            <ConditionBuilder
+              fieldId={field.id}
+              conditions={field.conditions ?? []}
+              allFields={allFields.filter((f) => f.name !== (field.props.name as string))}
+              isStructural={def.isStructural ?? false}
+              onChange={(conds) => onUpdateConditions(field.id, conds)}
+            />
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-4 p-3">

@@ -1,5 +1,6 @@
 "use client";
 
+import type { StateCondition, VisibilityCondition } from "@json-render/core";
 import { defineCatalog } from "@json-render/core";
 import type { Spec, StateModel, StateStore } from "@json-render/react";
 import {
@@ -17,7 +18,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button as ShadcnButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { FieldComponent, FormField, FormRow, FormSchema } from "./types";
+import type { FieldComponent, FieldCondition, FormField, FormRow, FormSchema } from "./types";
 
 // ─── useRhfStateStore ─────────────────────────────────────────────────────────
 
@@ -284,6 +285,78 @@ function createFieldRegistry(customFields: Record<string, FieldComponent> = {}) 
   return registry;
 }
 
+// ─── Condition helpers ────────────────────────────────────────────────────────
+
+function conditionToStateCondition(c: FieldCondition): StateCondition {
+  const base = { $state: `/${c.triggerField}` };
+  switch (c.operator) {
+    case "eq":
+      return { ...base, eq: c.value };
+    case "neq":
+      return { ...base, neq: c.value };
+    case "gt":
+      return { ...base, gt: c.value as number };
+    case "gte":
+      return { ...base, gte: c.value as number };
+    case "lt":
+      return { ...base, lt: c.value as number };
+    case "lte":
+      return { ...base, lte: c.value as number };
+    case "truthy":
+      return base;
+    case "falsy":
+      return { ...base, not: true };
+  }
+}
+
+function buildVisibleCondition(conditions: FieldCondition[]): VisibilityCondition | undefined {
+  const showHide = conditions.filter((c) => c.action === "show" || c.action === "hide");
+  if (showHide.length === 0) return undefined;
+  const stateConditions = showHide.map((c): StateCondition => {
+    const sc = conditionToStateCondition(c);
+    if (c.action === "hide") {
+      // Negate: flip the `not` flag (only `true` is valid, so remove if set)
+      if (sc.not) {
+        const { not: _, ...rest } = sc;
+        return rest as StateCondition;
+      }
+      return { ...sc, not: true };
+    }
+    return sc;
+  });
+  return stateConditions.length === 1 ? stateConditions[0] : { $and: stateConditions };
+}
+
+function buildDisabledExpression(conditions: FieldCondition[]): unknown | undefined {
+  const ed = conditions.find((c) => c.action === "enable" || c.action === "disable");
+  if (!ed) return undefined;
+  const sc = conditionToStateCondition(ed);
+  return {
+    $cond: sc,
+    $then: ed.action === "disable",
+    $else: ed.action !== "disable",
+  };
+}
+
+function buildWatchBindings(
+  conditions: FieldCondition[],
+  targetName: string
+): Record<string, object> | undefined {
+  const computeConds = conditions.filter((c) => c.action === "compute");
+  if (computeConds.length === 0) return undefined;
+  const watch: Record<string, object> = {};
+  for (const c of computeConds) {
+    watch[`/${c.triggerField}`] = {
+      action: "setFieldValue",
+      params: {
+        targetPath: `/${targetName}`,
+        sourceExpr: c.computeValue ?? "",
+      },
+    };
+  }
+  return watch;
+}
+
 // ─── Schema converter ─────────────────────────────────────────────────────────
 
 function schemaToSpec(schema: FormSchema): Spec & { state: Record<string, unknown> } {
@@ -294,14 +367,26 @@ function schemaToSpec(schema: FormSchema): Spec & { state: Record<string, unknow
 
   function processField(field: FormField): string {
     const key = `f${idx++}`;
-    const { type, name, defaultValue, props = {} } = field;
+    const { type, name, defaultValue, props = {}, conditions = [] } = field;
+
+    const visible = buildVisibleCondition(conditions);
+    const disabledExpr = buildDisabledExpression(conditions);
+    const extraProps = disabledExpr !== undefined ? { disabled: disabledExpr } : {};
+
     if (!name) {
-      elements[key] = { type, props };
-    } else {
-      stateDefaults[name] = defaultValue ?? "";
       elements[key] = {
         type,
-        props: { ...props, name, value: { $bindState: `/${name}` } },
+        props: { ...props, ...extraProps },
+        ...(visible !== undefined && { visible }),
+      };
+    } else {
+      stateDefaults[name] = defaultValue ?? "";
+      const watch = buildWatchBindings(conditions, name);
+      elements[key] = {
+        type,
+        props: { ...props, ...extraProps, name, value: { $bindState: `/${name}` } },
+        ...(visible !== undefined && { visible }),
+        ...(watch && { watch }),
       };
     }
     return key;
@@ -381,6 +466,15 @@ export function FormRenderer({
         handlers={{
           submit: async () => {
             await handleSubmit();
+          },
+          setFieldValue: (params) => {
+            const targetPath = params.targetPath as string;
+            const sourceExpr = params.sourceExpr as string;
+            const value =
+              typeof sourceExpr === "string" && sourceExpr.startsWith("@")
+                ? store.get(`/${sourceExpr.slice(1)}`)
+                : sourceExpr;
+            store.set(targetPath, value);
           },
         }}
       >

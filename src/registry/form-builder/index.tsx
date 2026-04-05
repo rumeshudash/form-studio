@@ -50,6 +50,7 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
     reorderFieldsInGrid,
     moveField,
     updateFieldProp,
+    updateFieldConditions,
     updateGridColumns,
     updateStackConfig,
     updateButtonConfig,
@@ -57,6 +58,22 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
     setFormMeta,
     fullCatalogMap,
   } = useFormBuilderState(catalogMap, defaultSchema ? { fromSchema: defaultSchema } : undefined);
+
+  const allFields = useMemo(
+    () =>
+      state.items
+        .flatMap((item) => (item.kind === "grid" ? item.fields : [item as CanvasField]))
+        .filter((f) => {
+          const def = fullCatalogMap[f.fieldType];
+          return !def?.isStructural && f.props.name;
+        })
+        .map((f) => ({
+          name: f.props.name as string,
+          label: (f.props.label as string) || f.fieldType,
+          fieldType: f.fieldType,
+        })),
+    [state.items, fullCatalogMap]
+  );
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -276,6 +293,8 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
           field={selectedField}
           catalogMap={fullCatalogMap}
           onUpdateProp={updateFieldProp}
+          onUpdateConditions={updateFieldConditions}
+          allFields={allFields}
           stackConfig={state.stackConfig}
           buttonConfig={state.buttonConfig}
           onUpdateStackConfig={updateStackConfig}
