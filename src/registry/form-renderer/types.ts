@@ -3,6 +3,25 @@
 export type ConditionOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "truthy" | "falsy";
 export type ConditionAction = "show" | "hide" | "enable" | "disable" | "compute";
 
+// ─── Validation types ─────────────────────────────────────────────────────────
+
+export type ValidationRuleType =
+  | "required"
+  | "email"
+  | "url"
+  | "numeric"
+  | "minLength"
+  | "maxLength"
+  | "min"
+  | "max"
+  | "pattern";
+
+export interface FieldValidationRule {
+  type: ValidationRuleType;
+  message?: string; // falls back to a built-in default if omitted
+  value?: string | number; // required for minLength/maxLength/min/max/pattern
+}
+
 export interface FieldCondition {
   triggerField: string;
   operator: ConditionOperator;
@@ -19,6 +38,7 @@ export interface FormField {
   defaultValue?: unknown; // initial form value (defaults to "")
   props?: Record<string, unknown>; // label, placeholder, options, and any other component props
   conditions?: FieldCondition[];
+  validation?: FieldValidationRule[];
 }
 
 export interface FormRow {
@@ -59,6 +79,7 @@ export interface CanvasField {
   fieldType: FieldType;
   props: Record<string, unknown>;
   conditions?: FieldCondition[];
+  validation?: FieldValidationRule[];
 }
 
 export interface CanvasGrid {
@@ -104,6 +125,9 @@ export interface ConfigurableProp {
 export interface FieldComponentProps {
   value: unknown;
   onChange: (value: unknown) => void;
+  onBlur?: () => void;
+  errors?: string[];
+  isValid?: boolean;
   [key: string]: unknown;
 }
 

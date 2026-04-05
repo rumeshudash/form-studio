@@ -51,6 +51,7 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
     moveField,
     updateFieldProp,
     updateFieldConditions,
+    updateFieldValidation,
     updateGridColumns,
     updateStackConfig,
     updateButtonConfig,
@@ -294,6 +295,7 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
           catalogMap={fullCatalogMap}
           onUpdateProp={updateFieldProp}
           onUpdateConditions={updateFieldConditions}
+          onUpdateValidation={updateFieldValidation}
           allFields={allFields}
           stackConfig={state.stackConfig}
           buttonConfig={state.buttonConfig}

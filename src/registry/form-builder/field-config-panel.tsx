@@ -6,16 +6,19 @@ import type {
   CanvasField,
   ConfigurableProp,
   FieldCondition,
+  FieldValidationRule,
   FormFieldDefinition,
   StackConfig,
 } from "../form-renderer/types";
 import { ConditionBuilder } from "./condition-builder";
+import { ValidationBuilder } from "./validation-builder";
 
 interface FieldConfigPanelProps {
   field: CanvasField | null;
   catalogMap: Record<string, FormFieldDefinition>;
   onUpdateProp: (id: string, propKey: string, value: unknown) => void;
   onUpdateConditions: (id: string, conditions: FieldCondition[]) => void;
+  onUpdateValidation: (id: string, rules: FieldValidationRule[]) => void;
   allFields: Array<{ name: string; label: string; fieldType: string }>;
   stackConfig: StackConfig;
   buttonConfig: ButtonConfig;
@@ -28,6 +31,7 @@ export function FieldConfigPanel({
   catalogMap,
   onUpdateProp,
   onUpdateConditions,
+  onUpdateValidation,
   allFields,
   stackConfig,
   buttonConfig,
@@ -66,6 +70,15 @@ export function FieldConfigPanel({
               onChange={(conds) => onUpdateConditions(field.id, conds)}
             />
           </div>
+          {!def.isStructural && (
+            <div className="border-t border-border pt-3">
+              <ValidationBuilder
+                fieldId={field.id}
+                rules={field.validation ?? []}
+                onChange={(rules) => onUpdateValidation(field.id, rules)}
+              />
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-4 p-3">

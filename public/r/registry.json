@@ -85,6 +85,11 @@
           "path": "src/registry/form-builder/condition-builder.tsx",
           "type": "registry:component",
           "target": "components/form-builder/condition-builder.tsx"
+        },
+        {
+          "path": "src/registry/form-builder/validation-builder.tsx",
+          "type": "registry:component",
+          "target": "components/form-builder/validation-builder.tsx"
         }
       ]
     },
