@@ -3,70 +3,23 @@
 import { ModeToggle } from "@/components/mode-toggle";
 import { FormRenderer } from "@/registry/form-renderer";
 import type { FormSchema } from "@/registry/form-renderer/types";
+import { CUSTOM_COMPONENTS } from "../blocks/form-builder-with-schema/custom-fields";
 
 const SAMPLE_SCHEMA: FormSchema = {
-  // title: "Contact Form",
-  root: "root",
-  elements: {
-    root: {
-      type: "Stack",
-      props: { direction: "vertical", gap: "md" },
-      children: ["name", "email", "role", "message", "submit"],
+  title: "Contact Form",
+  fields: [
+    { type: "TextInput", name: "name", label: "Full Name", placeholder: "John Doe" },
+    { type: "TextInput", name: "email", label: "Email", placeholder: "john@example.com" },
+    {
+      type: "SelectField",
+      name: "role",
+      label: "Role",
+      options: ["Developer", "Designer", "Manager", "Other"],
+      placeholder: "Select your role...",
     },
-    name: {
-      type: "Input",
-      props: {
-        label: "Full Name",
-        name: "name",
-        type: "text",
-        placeholder: "John Doe",
-        value: { $bindState: "/name" },
-        checks: [{ type: "required", message: "Name is required" }],
-        validateOn: "blur",
-      },
-    },
-    email: {
-      type: "Input",
-      props: {
-        label: "Email",
-        name: "email",
-        type: "email",
-        placeholder: "john@example.com",
-        value: { $bindState: "/email" },
-        checks: [{ type: "required", message: "Email is required" }],
-        validateOn: "blur",
-      },
-    },
-    role: {
-      type: "Select",
-      props: {
-        label: "Role",
-        name: "role",
-        options: ["Developer", "Designer", "Manager", "Other"],
-        placeholder: "Select your role...",
-        value: { $bindState: "/role" },
-        checks: null,
-        validateOn: "blur",
-      },
-    },
-    message: {
-      type: "Textarea",
-      props: {
-        label: "Message",
-        name: "message",
-        placeholder: "Your message...",
-        value: { $bindState: "/message" },
-        checks: null,
-        validateOn: "blur",
-      },
-    },
-    submit: {
-      type: "Button",
-      props: { label: "Submit", variant: "primary" },
-      on: { press: { action: "submit" } },
-    },
-  },
-  state: { name: "", email: "", role: "", message: "" },
+    { type: "Textarea", name: "message", label: "Message", placeholder: "Your message..." },
+  ],
+  submit: { label: "Submit" },
 };
 
 export default function RendererDemoPage() {
@@ -83,6 +36,7 @@ export default function RendererDemoPage() {
         </p>
         <FormRenderer
           schema={SAMPLE_SCHEMA}
+          customFields={CUSTOM_COMPONENTS}
           onSubmit={(data) => {
             console.log("Submitted:", data);
             alert(JSON.stringify(data, null, 2));

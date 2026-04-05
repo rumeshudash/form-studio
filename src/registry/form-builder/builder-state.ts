@@ -7,7 +7,10 @@ import type {
   CanvasGrid,
   CanvasItem,
   FormBuilderState,
+  FormField,
   FormFieldDefinition,
+  FormItem,
+  FormRow,
   FormSchema,
   StackConfig,
 } from "../form-renderer/types";
@@ -39,7 +42,7 @@ export function useFormBuilderState(
   const [state, setState] = useState<FormBuilderState>(() => {
     const base =
       initial && "fromSchema" in initial
-        ? buildBuilderStateFromSpec(initial.fromSchema, validFieldTypes, fullCatalogMap)
+        ? buildBuilderStateFromSpec(initial.fromSchema, validFieldTypes)
         : (initial as Partial<FormBuilderState> | undefined);
     return {
       items: base?.items ?? [],
@@ -288,109 +291,78 @@ function getBoundProp(fieldType: string, def?: FormFieldDefinition): string {
   return "value";
 }
 
-function buildFieldElement(
+function buildFormField(
   field: CanvasField,
   catalogMap: Record<string, FormFieldDefinition>
-): object {
+): FormField {
   const def = catalogMap[field.fieldType];
+  const { name, value: _value, ...restProps } = field.props;
   if (def?.isStructural) {
-    return { type: field.fieldType, props: { ...field.props } };
+    return { type: field.fieldType, ...restProps };
   }
-  const bindProp = getBoundProp(field.fieldType, def);
-  return {
+  const result: FormField = {
     type: field.fieldType,
-    props: {
-      ...field.props,
-      [bindProp]: { $bindState: `/${field.props.name as string}` },
-    },
+    name: name as string,
+    defaultValue: getDefaultValue(field, def),
+    ...restProps,
   };
+  // Only include boundProp if non-default, so it doesn't clutter the schema
+  const bp = getBoundProp(field.fieldType, def);
+  if (bp !== "value") result.boundProp = bp;
+  return result;
 }
 
-function makeCanvasField(
-  elementKey: string,
-  el: { type: string; props?: Record<string, unknown> },
-  def?: FormFieldDefinition
-): CanvasField {
-  if (def?.isStructural) {
-    return {
-      kind: "field",
-      id: crypto.randomUUID(),
-      elementKey,
-      fieldType: el.type,
-      props: { ...(el.props ?? {}) },
-    };
-  }
-  const bindProp = getBoundProp(el.type, def);
+function makeCanvasFieldFromFormField(field: FormField): CanvasField {
+  const { type, name, defaultValue: _dv, boundProp: _bp, ...restProps } = field;
+  const props: Record<string, unknown> = { ...restProps };
+  if (name) props.name = name;
   return {
     kind: "field",
     id: crypto.randomUUID(),
-    elementKey,
-    fieldType: el.type,
-    props: { ...(el.props ?? {}), [bindProp]: null },
+    elementKey: `field_${crypto.randomUUID().slice(0, 8)}`,
+    fieldType: type,
+    props,
   };
 }
 
 export function buildBuilderStateFromSpec(
   schema: Partial<FormSchema>,
-  validFieldTypes: Set<string>,
-  catalogMap: Record<string, FormFieldDefinition> = {}
+  validFieldTypes: Set<string>
 ): Partial<FormBuilderState> {
-  const rootElement = schema.elements?.root;
-  const rootChildren = (rootElement?.children ?? []).filter((k) => k !== "__submit__");
-
   const items: CanvasItem[] = [];
 
-  for (const key of rootChildren) {
-    const el = schema.elements?.[key];
-    if (!el) continue;
-
-    if (el.type === "Grid") {
-      const cols = ((el.props?.columns as number) ?? 2) as 2 | 3;
-      const fields: CanvasField[] = [];
-      for (const childKey of el.children ?? []) {
-        const childEl = schema.elements?.[childKey];
-        if (childEl && validFieldTypes.has(childEl.type)) {
-          fields.push(
-            makeCanvasField(
-              childKey,
-              { type: childEl.type, props: childEl.props as Record<string, unknown> },
-              catalogMap[childEl.type]
-            )
-          );
-        }
-      }
-      items.push({ kind: "grid", id: crypto.randomUUID(), elementKey: key, columns: cols, fields });
-    } else if (validFieldTypes.has(el.type)) {
-      items.push(
-        makeCanvasField(
-          key,
-          { type: el.type, props: el.props as Record<string, unknown> },
-          catalogMap[el.type]
-        )
-      );
+  for (const item of schema.fields ?? []) {
+    if (item.type === "Grid") {
+      const row = item as FormRow;
+      const fields: CanvasField[] = row.fields
+        .filter((f) => validFieldTypes.has(f.type))
+        .map(makeCanvasFieldFromFormField);
+      items.push({
+        kind: "grid",
+        id: crypto.randomUUID(),
+        elementKey: `grid_${crypto.randomUUID().slice(0, 8)}`,
+        columns: row.columns,
+        fields,
+      });
+    } else if (validFieldTypes.has(item.type)) {
+      items.push(makeCanvasFieldFromFormField(item as FormField));
     }
   }
 
-  const rootEl = schema.elements?.root;
-  const submitEl = schema.elements?.__submit__;
-
-  const stackConfig: StackConfig = {
-    gap: (rootEl?.props?.gap as StackConfig["gap"]) ?? DEFAULT_STACK_CONFIG.gap,
-  };
-
-  const buttonConfig: ButtonConfig = {
-    label: (submitEl?.props?.label as string) ?? DEFAULT_BUTTON_CONFIG.label,
-    variant: (submitEl?.props?.variant as ButtonConfig["variant"]) ?? DEFAULT_BUTTON_CONFIG.variant,
-    disabled: (submitEl?.props?.disabled as boolean) ?? DEFAULT_BUTTON_CONFIG.disabled,
-  };
+  const { gap = DEFAULT_STACK_CONFIG.gap, align, justify } = schema.layout ?? {};
+  const {
+    label = DEFAULT_BUTTON_CONFIG.label,
+    variant = DEFAULT_BUTTON_CONFIG.variant,
+    disabled = DEFAULT_BUTTON_CONFIG.disabled,
+  } = schema.submit ?? {};
 
   return {
     items,
     formTitle: schema.title ?? "My Form",
     formDescription: schema.description ?? "",
     selectedFieldId: null,
-    stackConfig,
-    buttonConfig,
+    stackConfig: { gap, align, justify },
+    buttonConfig: { label, variant, disabled },
   };
 }
 
@@ -398,58 +370,29 @@ export function buildSpecFromBuilderState(
   state: FormBuilderState,
   catalogMap: Record<string, FormFieldDefinition> = {}
 ): FormSchema {
-  const rootChildren: string[] = [];
-  const elements: Record<string, object> = {};
+  const fields: FormItem[] = [];
 
   for (const item of state.items) {
     if (item.kind === "grid") {
       const grid = item as CanvasGrid;
-      elements[grid.elementKey] = {
+      fields.push({
         type: "Grid",
-        props: { columns: grid.columns, gap: "md" },
-        children: grid.fields.map((f) => f.elementKey),
-      };
-      rootChildren.push(grid.elementKey);
-      for (const field of grid.fields) {
-        elements[field.elementKey] = buildFieldElement(field, catalogMap);
-      }
+        columns: grid.columns,
+        fields: grid.fields.map((f) => buildFormField(f, catalogMap)),
+      } as FormRow);
     } else {
-      const field = item as CanvasField;
-      elements[field.elementKey] = buildFieldElement(field, catalogMap);
-      rootChildren.push(field.elementKey);
+      fields.push(buildFormField(item as CanvasField, catalogMap));
     }
   }
-
-  const allFields = state.items.flatMap((item): CanvasField[] =>
-    item.kind === "grid" ? item.fields : [item as CanvasField]
-  );
-
-  const stateDefaults = Object.fromEntries(
-    allFields
-      .filter((f) => !catalogMap[f.fieldType]?.isStructural)
-      .map((f) => [f.props.name as string, getDefaultValue(f, catalogMap[f.fieldType])])
-  );
 
   const sc = state.stackConfig ?? DEFAULT_STACK_CONFIG;
   const bc = state.buttonConfig ?? DEFAULT_BUTTON_CONFIG;
 
   return {
-    title: state.formTitle,
-    description: state.formDescription,
-    root: "root",
-    elements: {
-      root: {
-        type: "Stack",
-        props: { direction: "vertical", gap: sc.gap, align: sc.align, justify: sc.justify },
-        children: [...rootChildren, "__submit__"],
-      },
-      __submit__: {
-        type: "Button",
-        props: { label: bc.label, variant: bc.variant, disabled: bc.disabled },
-        on: { press: { action: "submit" } },
-      },
-      ...elements,
-    },
-    state: stateDefaults,
+    title: state.formTitle || undefined,
+    description: state.formDescription || undefined,
+    fields,
+    layout: { gap: sc.gap, align: sc.align, justify: sc.justify },
+    submit: { label: bc.label, variant: bc.variant, disabled: bc.disabled },
   };
 }

@@ -1,9 +1,38 @@
-import type { Spec } from "@json-render/react";
+// ─── Developer-facing schema ──────────────────────────────────────────────────
 
-export interface FormSchema extends Spec {
+export interface FormField {
+  type: string;           // component type ("TextInput", "SelectField", etc.)
+  name?: string;          // state key — required for non-structural fields
+  defaultValue?: unknown; // initial form value (defaults to "")
+  [key: string]: unknown; // label, placeholder, options, and any other props
+}
+
+export interface FormRow {
+  type: "Grid";
+  columns: 2 | 3;
+  gap?: "none" | "sm" | "md" | "lg" | "xl";
+  fields: FormField[];
+}
+
+export type FormItem = FormField | FormRow;
+
+export interface FormSchema {
   title?: string;
   description?: string;
+  fields: FormItem[];
+  layout?: {
+    gap?: "none" | "sm" | "md" | "lg" | "xl";
+    align?: "start" | "center" | "end" | "stretch";
+    justify?: "start" | "center" | "end" | "between" | "around";
+  };
+  submit?: {
+    label?: string;
+    variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
+    disabled?: boolean;
+  };
 }
+
+// ─── Builder types ────────────────────────────────────────────────────────────
 
 // Open string type — built-in values documented, custom types accepted.
 // Built-ins: "Input" | "Textarea" | "Select" | "Checkbox" | "Radio" | "Switch" | "Slider"
@@ -72,7 +101,7 @@ export interface FormFieldDefinition {
   // Built-ins: "text" | "choice" | "toggle" | "numeric" — custom categories accepted.
   category: string;
   defaultProps: Record<string, unknown>;
-  // Which prop to $bindState — defaults to "value" if omitted
+  // Which prop to $bindState — defaults to "value" if omitted (internal use only)
   boundProp?: string;
   // Default value for the bound prop in form state — defaults to ""
   defaultValue?: unknown;

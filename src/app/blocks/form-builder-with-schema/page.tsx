@@ -27,13 +27,11 @@ export default function FormBuilderWithSchemaPage() {
 
   return (
     <ResizablePanelGroup orientation="horizontal" className="flex-1">
-      <ResizablePanel defaultSize={70} minSize="55%" className="h-full">
-        <FormBuilder className="h-full" catalog={CUSTOM_FIELD_DEFS} onChange={setSchema} />
+      <ResizablePanel defaultSize={70} minSize={55}>
+        <FormBuilder catalog={CUSTOM_FIELD_DEFS} onChange={setSchema} />
       </ResizablePanel>
-
       <ResizableHandle withHandle />
-
-      <ResizablePanel defaultSize={30} minSize="20%" className="h-full">
+      <ResizablePanel defaultSize={30} minSize={20}>
         <div className="flex flex-col h-full bg-background">
           {/* Panel header */}
           <div className="flex items-center border-b border-border h-10 px-1 gap-0.5 shrink-0">

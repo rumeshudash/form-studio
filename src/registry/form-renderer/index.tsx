@@ -1,7 +1,7 @@
 "use client";
 
 import { defineCatalog } from "@json-render/core";
-import type { StateModel, StateStore } from "@json-render/react";
+import type { Spec, StateModel, StateStore } from "@json-render/react";
 import {
   ActionProvider,
   defineRegistry,
@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button as ShadcnButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { FieldComponent, FormSchema } from "./types";
+import type { FieldComponent, FormField, FormRow, FormSchema } from "./types";
 
 // ─── useRhfStateStore ─────────────────────────────────────────────────────────
 
@@ -284,6 +284,68 @@ function createFieldRegistry(customFields: Record<string, FieldComponent> = {}) 
   return registry;
 }
 
+// ─── Schema converter ─────────────────────────────────────────────────────────
+
+function schemaToSpec(schema: FormSchema): Spec & { state: Record<string, unknown> } {
+  const rootChildren: string[] = [];
+  const elements: Record<string, object> = {};
+  const stateDefaults: Record<string, unknown> = {};
+  let idx = 0;
+
+  function processField(field: FormField): string {
+    const key = `f${idx++}`;
+    const { type, name, defaultValue, ...props } = field;
+    if (!name) {
+      elements[key] = { type, props };
+    } else {
+      stateDefaults[name] = defaultValue ?? "";
+      elements[key] = {
+        type,
+        props: { ...props, name, value: { $bindState: `/${name}` } },
+      };
+    }
+    return key;
+  }
+
+  for (const item of schema.fields) {
+    if (item.type === "Grid") {
+      const row = item as FormRow;
+      const gridKey = `g${idx++}`;
+      const childKeys = row.fields.map(processField);
+      elements[gridKey] = {
+        type: "Grid",
+        props: { columns: row.columns, gap: row.gap ?? "md" },
+        children: childKeys,
+      };
+      rootChildren.push(gridKey);
+    } else {
+      rootChildren.push(processField(item as FormField));
+    }
+  }
+
+  const { gap = "md", align, justify } = schema.layout ?? {};
+  const { label = "Submit", variant = "primary", disabled = false } = schema.submit ?? {};
+
+  elements.__submit__ = {
+    type: "Button",
+    props: { label, variant, disabled },
+    on: { press: { action: "submit" } },
+  };
+
+  return {
+    root: "root",
+    elements: {
+      root: {
+        type: "Stack",
+        props: { direction: "vertical", gap, align, justify },
+        children: [...rootChildren, "__submit__"],
+      },
+      ...elements,
+    },
+    state: stateDefaults,
+  } as Spec & { state: Record<string, unknown> };
+}
+
 // ─── FormRenderer ─────────────────────────────────────────────────────────────
 
 export interface FormRendererProps {
@@ -302,7 +364,8 @@ export function FormRenderer({
   customFields,
   className,
 }: FormRendererProps) {
-  const initialValues = { ...schema.state, ...defaultValues };
+  const spec = schemaToSpec(schema);
+  const initialValues = { ...spec.state, ...defaultValues };
   const { store, form } = useRhfStateStore(initialValues);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: registry is intentionally created once; customFields changes are not supported at runtime
@@ -328,7 +391,7 @@ export function FormRenderer({
               className={cn("w-full", className)}
               noValidate
             >
-              <Renderer spec={schema} registry={registry} />
+              <Renderer spec={spec} registry={registry} />
             </form>
           </ValidationProvider>
         </VisibilityProvider>
