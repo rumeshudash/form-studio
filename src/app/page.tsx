@@ -186,7 +186,12 @@ function CodeBlock({ html, code }: { html: string; code: string }) {
 
 function CommandBlock({ cmd, className }: { cmd: string; className?: string }) {
   return (
-    <div className={cn("flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground/80", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground/80",
+        className
+      )}
+    >
       <span className="select-all flex-1 overflow-x-auto whitespace-nowrap">{cmd}</span>
       <CopyButton value={cmd} />
     </div>
@@ -209,7 +214,10 @@ function ComponentCard({ item }: { item: (typeof COMPONENTS)[number] | (typeof B
         <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
       </div>
 
-      <CommandBlock cmd={`npx shadcn@latest add "${REGISTRY_URL}/${item.name}.json"`} className="" />
+      <CommandBlock
+        cmd={`npx shadcn@latest add "${REGISTRY_URL}/${item.name}.json"`}
+        className=""
+      />
 
       <div className="flex flex-col gap-2">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -349,8 +357,7 @@ export default async function DocsPage() {
               <p className="text-sm font-medium">3. Define your field catalog</p>
               <p className="text-xs text-muted-foreground">
                 A catalog maps field type keys to React components and their metadata. Pass the same
-                array to both{" "}
-                <code className="rounded bg-muted px-1 py-0.5">FormRenderer</code> and{" "}
+                array to both <code className="rounded bg-muted px-1 py-0.5">FormRenderer</code> and{" "}
                 <code className="rounded bg-muted px-1 py-0.5">FormBuilder</code>.
               </p>
               <CodeBlock html={catalogHtml} code={SNIPPET_CATALOG} />

@@ -38,7 +38,13 @@ export interface FormBuilderProps {
   className?: string;
 }
 
-export function FormBuilder({ catalog, defaultSchema, onChange, actions, className }: FormBuilderProps) {
+export function FormBuilder({
+  catalog,
+  defaultSchema,
+  onChange,
+  actions,
+  className,
+}: FormBuilderProps) {
   const catalogMap = useMemo(
     () => Object.fromEntries(catalog.map((d) => [d.fieldType, d])),
     [catalog]

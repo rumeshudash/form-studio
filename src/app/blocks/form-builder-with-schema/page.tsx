@@ -4,12 +4,7 @@ import { Check, Copy, Eye } from "lucide-react";
 import { useCallback, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormBuilder } from "@/registry/form-builder";
 import { FormRenderer } from "@/registry/form-renderer";
@@ -63,8 +58,12 @@ export default function FormBuilderWithSchemaPage() {
             <DialogHeader className="flex-row items-center gap-3 border-b px-4 py-2 shrink-0">
               <DialogTitle className="text-sm font-medium">Form Preview</DialogTitle>
               <TabsList variant="line" className="h-8">
-                <TabsTrigger value="preview" className="text-xs">Preview</TabsTrigger>
-                <TabsTrigger value="schema" className="text-xs">Schema</TabsTrigger>
+                <TabsTrigger value="preview" className="text-xs">
+                  Preview
+                </TabsTrigger>
+                <TabsTrigger value="schema" className="text-xs">
+                  Schema
+                </TabsTrigger>
               </TabsList>
               {modalTab === "schema" && (
                 <Button
@@ -85,7 +84,7 @@ export default function FormBuilderWithSchemaPage() {
                 <FormRenderer
                   schema={schema}
                   catalog={CUSTOM_CATALOG}
-                  onSubmit={(data) => console.log("Form submitted:", data)}
+                  onSubmit={(data) => alert(`Form submitted: \n ${JSON.stringify(data, null, 2)}`)}
                 />
               ) : (
                 <p className="text-center text-sm text-muted-foreground/60 italic mt-12">
