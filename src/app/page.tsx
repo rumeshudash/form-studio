@@ -1,11 +1,107 @@
 import { Blocks, Component, ExternalLink, GitFork, Package } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
 import { ModeToggle } from "@/components/mode-toggle";
+import { cn } from "@/lib/utils";
 
 const REGISTRY_URL =
   process.env.NEXT_PUBLIC_REGISTRY_URL || "https://your-username.github.io/your-repo/r";
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
+// ─── Quick-start code snippets ────────────────────────────────────────────────
+
+const SNIPPET_CATALOG = `import { TextCursorInput } from "lucide-react"
+import type { FieldComponent, FormFieldEntry } from "@/components/form-renderer/types"
+
+const TextInput: FieldComponent = ({ label, value, onChange, onBlur, errors }) => (
+  <div className="flex flex-col gap-1.5">
+    {label && <label className="text-sm font-medium">{String(label)}</label>}
+    <input
+      value={String(value ?? "")}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
+      className="border rounded px-3 py-1.5 text-sm"
+    />
+    {errors?.[0] && <p className="text-xs text-red-500">{errors[0]}</p>}
+  </div>
+)
+
+export const catalog: FormFieldEntry[] = [
+  {
+    fieldType: "TextInput",
+    displayName: "Text Input",
+    icon: TextCursorInput,
+    category: "Input",
+    defaultProps: { label: "Label", placeholder: "" },
+    defaultValue: "",
+    configurableProps: [
+      { key: "label",       label: "Label",       inputType: "text" },
+      { key: "name",        label: "Field Name",  inputType: "text" },
+      { key: "placeholder", label: "Placeholder", inputType: "text" },
+    ],
+    component: TextInput,
+  },
+]`;
+
+const SNIPPET_RENDERER = `import { FormRenderer } from "@/components/form-renderer"
+import { catalog } from "./catalog"
+
+const schema = {
+  fields: [
+    { type: "TextInput", name: "name",  props: { label: "Name" },
+      validation: [{ type: "required" }] },
+    { type: "TextInput", name: "email", props: { label: "Email" },
+      validation: [{ type: "required" }] },
+  ],
+  submit: { label: "Send" },
+}
+
+export default function Page() {
+  return (
+    <FormRenderer
+      schema={schema}
+      catalog={catalog}
+      onSubmit={(data) => console.log(data)}
+    />
+  )
+}`;
+
+const SNIPPET_BUILDER = `import { FormBuilder } from "@/components/form-builder"
+import { catalog } from "./catalog"
+
+export default function Page() {
+  return (
+    <FormBuilder
+      catalog={catalog}
+      onChange={(schema) => console.log(schema)}
+    />
+  )
+}`;
+
+const SNIPPET_SCHEMA = `{
+  "title": "Contact Form",
+  "fields": [
+    {
+      "type": "TextInput",
+      "name": "fullName",
+      "props": { "label": "Full Name", "placeholder": "Jane Doe" },
+      "validation": [{ "type": "required" }]
+    },
+    {
+      "type": "TextInput",
+      "name": "email",
+      "props": { "label": "Email", "type": "email" },
+      "validation": [{ "type": "required" }]
+    },
+    {
+      "type": "SelectField",
+      "name": "subject",
+      "props": { "label": "Subject", "options": ["Support", "Billing", "Other"] },
+      "conditions": [{ "triggerField": "email", "operator": "truthy", "action": "show" }]
+    }
+  ],
+  "submit": { "label": "Send Message" }
+}`;
 
 // ─── Registry data ────────────────────────────────────────────────────────────
 
@@ -22,16 +118,17 @@ const COMPONENTS = [
     name: "form-builder",
     title: "Form Builder",
     description:
-      "Drag-and-drop visual form builder that outputs a json-render compatible FormSchema. Includes a field palette, canvas with grid support, and a configurable properties panel.",
+      "Drag-and-drop visual form builder that outputs a FormSchema. Includes a field palette, canvas with grid support, and a configurable properties panel for validation and conditional logic.",
     dependencies: [
+      "@json-render/react",
+      "@json-render/core",
+      "react-hook-form",
+      "zod",
       "@dnd-kit/core",
       "@dnd-kit/sortable",
       "@dnd-kit/utilities",
-      "@json-render/react",
-      "react-hook-form",
-      "zod",
     ],
-    registryDeps: ["form-renderer"],
+    registryDeps: ["form-renderer", "button", "checkbox", "input", "label", "select", "textarea"],
   },
 ];
 
@@ -40,13 +137,16 @@ const BLOCKS = [
     name: "form-builder-with-schema",
     title: "Form Builder with Schema & Preview",
     description:
-      "A full-page block that combines the drag-and-drop builder with a resizable side panel showing the live JSON schema (copyable) and a form preview — ready to drop into any Next.js app route.",
-    dependencies: ["shiki", "react-resizable-panels"],
+      "A full-page block that combines the drag-and-drop builder with a live JSON schema panel (copyable) and a form preview — ready to drop into any Next.js app route.",
+    dependencies: ["shiki"],
     registryDeps: [
       "form-builder",
-      "resizable",
+      "button",
+      "dialog",
+      "tabs",
       "input",
       "textarea",
+      "label",
       "select",
       "checkbox",
       "radio-group",
@@ -58,10 +158,35 @@ const BLOCKS = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function InstallCommand({ url }: { url: string }) {
-  const cmd = `npx shadcn@latest add "${url}"`;
+async function highlight(code: string, lang: "tsx" | "json"): Promise<string> {
+  const { getSingletonHighlighter } = await import("shiki");
+  const hl = await getSingletonHighlighter({
+    langs: ["tsx", "json"],
+    themes: ["github-light", "github-dark"],
+  });
+  return hl.codeToHtml(code, {
+    lang,
+    themes: { light: "github-light", dark: "github-dark" },
+  });
+}
+
+function CodeBlock({ html, code }: { html: string; code: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 font-mono text-xs text-foreground/80">
+    <div className="relative rounded-lg border border-border bg-background overflow-hidden">
+      <div className="absolute right-2 top-2 z-10">
+        <CopyButton value={code} />
+      </div>
+      <div
+        className="code-block overflow-x-auto p-3 pr-10"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
+  );
+}
+
+function CommandBlock({ cmd, className }: { cmd: string; className?: string }) {
+  return (
+    <div className={cn("flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground/80", className)}>
       <span className="select-all flex-1 overflow-x-auto whitespace-nowrap">{cmd}</span>
       <CopyButton value={cmd} />
     </div>
@@ -78,13 +203,13 @@ function DepBadge({ label }: { label: string }) {
 
 function ComponentCard({ item }: { item: (typeof COMPONENTS)[number] | (typeof BLOCKS)[number] }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
+    <div className="rounded-xl border border-border bg-muted/30 p-5 flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <h3 className="text-base font-semibold">{item.title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
       </div>
 
-      <InstallCommand url={`${REGISTRY_URL}/${item.name}.json`} />
+      <CommandBlock cmd={`npx shadcn@latest add "${REGISTRY_URL}/${item.name}.json"`} className="" />
 
       <div className="flex flex-col gap-2">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -105,7 +230,14 @@ function ComponentCard({ item }: { item: (typeof COMPONENTS)[number] | (typeof B
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function DocsPage() {
+export default async function DocsPage() {
+  const [catalogHtml, rendererHtml, builderHtml, schemaHtml] = await Promise.all([
+    highlight(SNIPPET_CATALOG, "tsx"),
+    highlight(SNIPPET_RENDERER, "tsx"),
+    highlight(SNIPPET_BUILDER, "tsx"),
+    highlight(SNIPPET_SCHEMA, "json"),
+  ]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -205,27 +337,37 @@ export default function DocsPage() {
               <p className="text-sm font-medium">
                 1. Initialize shadcn/ui (if you haven&apos;t already)
               </p>
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground/80">
-                <span className="flex-1">npx shadcn@latest init</span>
-                <CopyButton value="npx shadcn@latest init" />
-              </div>
+              <CommandBlock cmd="npx shadcn@latest init" />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <p className="text-sm font-medium">2. Add any component from the registry</p>
-              <InstallCommand url={`${REGISTRY_URL}/form-builder.json`} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <p className="text-sm font-medium">3. Use it in your app</p>
-              <div className="rounded-lg border border-border bg-background p-3 font-mono text-xs text-foreground/80 leading-relaxed whitespace-pre">{`import { FormBuilder } from "@/components/form-builder"
 
-export default function Page() {
-  return (
-    <FormBuilder
-      catalog={myFieldDefs}
-      onChange={(schema) => console.log(schema)}
-    />
-  )
-}`}</div>
+            <div className="flex flex-col gap-1.5">
+              <p className="text-sm font-medium">2. Install the renderer</p>
+              <CommandBlock cmd={`npx shadcn@latest add "${REGISTRY_URL}/form-renderer.json"`} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <p className="text-sm font-medium">3. Define your field catalog</p>
+              <p className="text-xs text-muted-foreground">
+                A catalog maps field type keys to React components and their metadata. Pass the same
+                array to both{" "}
+                <code className="rounded bg-muted px-1 py-0.5">FormRenderer</code> and{" "}
+                <code className="rounded bg-muted px-1 py-0.5">FormBuilder</code>.
+              </p>
+              <CodeBlock html={catalogHtml} code={SNIPPET_CATALOG} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <p className="text-sm font-medium">4. Render a form from a schema</p>
+              <CodeBlock html={rendererHtml} code={SNIPPET_RENDERER} />
+            </div>
+
+            <div className="border-t border-border pt-4 flex flex-col gap-1.5">
+              <p className="text-sm font-medium">
+                Want a visual builder instead? Install{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">form-builder</code>
+              </p>
+              <CommandBlock cmd={`npx shadcn@latest add "${REGISTRY_URL}/form-builder.json"`} />
+              <CodeBlock html={builderHtml} code={SNIPPET_BUILDER} />
             </div>
           </div>
         </section>
@@ -265,40 +407,14 @@ export default function Page() {
         <section className="flex flex-col gap-6">
           <h2 className="text-2xl font-semibold">Schema format</h2>
           <p className="text-muted-foreground">
-            The form builder outputs a{" "}
-            <a
-              href="https://github.com/vercel-labs/json-render"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-4 hover:text-foreground transition-colors"
-            >
-              @json-render
-            </a>{" "}
-            compatible{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormSchema</code>.
-            Pass it directly to{" "}
+            The form builder outputs a plain{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormSchema</code>{" "}
+            object. Pass it directly to{" "}
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">FormRenderer</code>{" "}
-            to render the form.
+            to render the form. Fields reference types from your own catalog, with optional
+            validation rules and conditional logic.
           </p>
-          <div className="rounded-xl border border-border bg-muted/30 p-4 font-mono text-xs text-foreground/80 leading-relaxed overflow-x-auto">
-            <pre>{`{
-  "title": "Contact Form",
-  "type": "Stack",
-  "props": { "gap": "md" },
-  "children": [
-    {
-      "type": "TextInput",
-      "props": { "label": "Name", "name": "name" },
-      "state": { "value": "$bindState:name" }
-    },
-    {
-      "type": "Button",
-      "props": { "label": "Submit" },
-      "on": { "press": "submit" }
-    }
-  ]
-}`}</pre>
-          </div>
+          <CodeBlock html={schemaHtml} code={SNIPPET_SCHEMA} />
         </section>
       </main>
 

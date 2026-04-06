@@ -119,14 +119,17 @@
 
 /* Shiki syntax highlighting */
 .schema-viewer .shiki,
-.schema-viewer .shiki code {
+.schema-viewer .shiki code,
+.code-block .shiki,
+.code-block .shiki code {
   background-color: transparent !important;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   font-family: var(--font-mono);
 }
 
-.dark .schema-viewer .shiki span {
+.dark .schema-viewer .shiki span,
+.dark .code-block .shiki span {
   color: var(--shiki-dark) !important;
 }
 
