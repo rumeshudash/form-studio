@@ -116,7 +116,9 @@
       ],
       "registryDependencies": [
         "https://rumeshudash.github.io/form-studio/r/form-builder.json",
-        "resizable",
+        "button",
+        "dialog",
+        "tabs",
         "input",
         "textarea",
         "label",
