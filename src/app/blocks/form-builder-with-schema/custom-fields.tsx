@@ -351,19 +351,23 @@ type AlertVariant = "info" | "success" | "warning" | "error";
 
 const ALERT_STYLES: Record<AlertVariant, { container: string; icon: string }> = {
   info: {
-    container: "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200",
+    container:
+      "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200",
     icon: "text-blue-500 dark:text-blue-400",
   },
   success: {
-    container: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950/40 dark:text-green-200",
+    container:
+      "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950/40 dark:text-green-200",
     icon: "text-green-500 dark:text-green-400",
   },
   warning: {
-    container: "border-yellow-200 bg-yellow-50 text-yellow-900 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-200",
+    container:
+      "border-yellow-200 bg-yellow-50 text-yellow-900 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-200",
     icon: "text-yellow-500 dark:text-yellow-400",
   },
   error: {
-    container: "border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200",
+    container:
+      "border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200",
     icon: "text-red-500 dark:text-red-400",
   },
 };
@@ -405,7 +409,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     displayName: "Text Input",
     icon: TextCursorInput,
     category: "Input",
-    defaultProps: { label: "Label", placeholder: "", type: "text", value: null },
+    defaultProps: { label: "Input", placeholder: "", type: "text", value: null },
     defaultValue: "",
     configurableProps: [
       { key: "label", label: "Label", inputType: "text" },
@@ -424,7 +428,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     displayName: "Textarea",
     icon: AlignLeft,
     category: "Input",
-    defaultProps: { label: "Label", placeholder: "", rows: 3, value: null },
+    defaultProps: { label: "Textarea", placeholder: "", rows: 3, value: null },
     defaultValue: "",
     configurableProps: [
       { key: "label", label: "Label", inputType: "text" },
@@ -439,7 +443,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     icon: ChevronDown,
     category: "Choice",
     defaultProps: {
-      label: "Label",
+      label: "Select",
       placeholder: "Select…",
       options: ["Option 1", "Option 2", "Option 3"],
       value: null,
@@ -470,7 +474,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     icon: CircleDot,
     category: "Choice",
     defaultProps: {
-      label: "Label",
+      label: "Radio Group",
       options: ["Option 1", "Option 2", "Option 3"],
       value: null,
     },
@@ -498,7 +502,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     displayName: "Slider",
     icon: SlidersHorizontal,
     category: "Input",
-    defaultProps: { label: "Label", min: 0, max: 100, step: 1, value: null },
+    defaultProps: { label: "Slider", min: 0, max: 100, step: 1, value: null },
     defaultValue: 50,
     configurableProps: [
       { key: "label", label: "Label", inputType: "text" },
