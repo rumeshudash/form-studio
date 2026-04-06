@@ -43,7 +43,13 @@
         "@dnd-kit/utilities"
       ],
       "registryDependencies": [
-        "https://rumeshudash.github.io/form-studio/r/form-renderer.json"
+        "https://rumeshudash.github.io/form-studio/r/form-renderer.json",
+        "button",
+        "checkbox",
+        "input",
+        "label",
+        "select",
+        "textarea"
       ],
       "files": [
         {
