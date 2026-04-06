@@ -22,6 +22,7 @@ import type {
   FieldCondition,
   FieldValidationRule,
   FormField,
+  FormFieldEntry,
   FormRow,
   FormSchema,
   ValidationRuleType,
@@ -485,7 +486,10 @@ function buildZodFormSchema(
 
 // ─── Schema converter ─────────────────────────────────────────────────────────
 
-function schemaToSpec(schema: FormSchema): Spec & { state: Record<string, unknown> } {
+function schemaToSpec(
+  schema: FormSchema,
+  structuralTypes: Set<string> = new Set()
+): Spec & { state: Record<string, unknown> } {
   const rootChildren: string[] = [];
   const elements: Record<string, object> = {};
   const stateDefaults: Record<string, unknown> = {};
@@ -501,7 +505,7 @@ function schemaToSpec(schema: FormSchema): Spec & { state: Record<string, unknow
       ...(disabledExpr !== undefined && { disabled: disabledExpr }),
     };
 
-    if (!name) {
+    if (!name || structuralTypes.has(type)) {
       elements[key] = {
         type,
         props: { ...props, ...extraProps },
@@ -565,8 +569,8 @@ export interface FormRendererProps {
   schema: FormSchema;
   onSubmit: (data: Record<string, unknown>) => void | Promise<void>;
   defaultValues?: Record<string, unknown>;
-  /** Plain React field components (FieldComponent interface). Auto-wrapped with state binding. */
-  customFields?: Record<string, FieldComponent>;
+  /** Unified field catalog — provides both component implementations and definitions (including isStructural). */
+  catalog?: FormFieldEntry[];
   className?: string;
 }
 
@@ -574,15 +578,23 @@ export function FormRenderer({
   schema,
   onSubmit,
   defaultValues,
-  customFields,
+  catalog,
   className,
 }: FormRendererProps) {
-  const spec = schemaToSpec(schema);
+  const structuralTypes = useMemo(
+    () => new Set((catalog ?? []).filter((e) => e.isStructural).map((e) => e.fieldType)),
+    [catalog]
+  );
+  const spec = schemaToSpec(schema, structuralTypes);
   const zodSchema = useMemo(() => buildZodFormSchema(schema.fields), [schema.fields]);
   const initialValues = { ...spec.state, ...defaultValues };
   const { store, form } = useRhfStateStore(initialValues, zodSchema);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: registry is intentionally created once; customFields changes are not supported at runtime
+  const customFields = useMemo(
+    () => Object.fromEntries((catalog ?? []).map((e) => [e.fieldType, e.component])),
+    [catalog]
+  );
+  // biome-ignore lint/correctness/useExhaustiveDependencies: registry is intentionally created once; catalog changes are not supported at runtime
   const registry = useMemo(() => createFieldRegistry(customFields), []);
 
   const handleSubmit = form.handleSubmit(async (data) => {

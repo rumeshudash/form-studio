@@ -6,6 +6,7 @@ import {
   CheckSquare,
   ChevronDown,
   CircleDot,
+  Info,
   Pipette,
   SlidersHorizontal,
   Star,
@@ -31,6 +32,7 @@ import type {
   FieldComponent,
   FieldComponentProps,
   FormFieldDefinition,
+  FormFieldEntry,
 } from "@/registry/form-renderer/types";
 
 // ─── Shadcn field components ──────────────────────────────────────────────────
@@ -343,9 +345,46 @@ const RatingInput: FieldComponent = ({
   );
 };
 
+// ─── Display components ───────────────────────────────────────────────────────
+
+type AlertVariant = "info" | "success" | "warning" | "error";
+
+const ALERT_STYLES: Record<AlertVariant, { container: string; icon: string }> = {
+  info: {
+    container: "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200",
+    icon: "text-blue-500 dark:text-blue-400",
+  },
+  success: {
+    container: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950/40 dark:text-green-200",
+    icon: "text-green-500 dark:text-green-400",
+  },
+  warning: {
+    container: "border-yellow-200 bg-yellow-50 text-yellow-900 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-200",
+    icon: "text-yellow-500 dark:text-yellow-400",
+  },
+  error: {
+    container: "border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200",
+    icon: "text-red-500 dark:text-red-400",
+  },
+};
+
+const AlertBox: FieldComponent = ({ title, message, variant = "info" }: FieldComponentProps) => {
+  const v = (variant as AlertVariant) in ALERT_STYLES ? (variant as AlertVariant) : "info";
+  const styles = ALERT_STYLES[v];
+  return (
+    <div className={cn("flex gap-3 rounded-md border px-4 py-3 text-sm", styles.container)}>
+      <Info className={cn("mt-0.5 h-4 w-4 shrink-0", styles.icon)} />
+      <div className="flex flex-col gap-0.5">
+        {title ? <p className="font-medium leading-snug">{String(title)}</p> : null}
+        {message ? <p className="leading-snug opacity-90">{String(message)}</p> : null}
+      </div>
+    </div>
+  );
+};
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
-export const CUSTOM_COMPONENTS: Record<string, FieldComponent> = {
+const CUSTOM_COMPONENTS: Record<string, FieldComponent> = {
   TextInput,
   TextareaField,
   SelectField,
@@ -356,9 +395,10 @@ export const CUSTOM_COMPONENTS: Record<string, FieldComponent> = {
   ColorPicker,
   DateInput,
   RatingInput,
+  AlertBox,
 };
 
-export const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
+const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
   // ── Shadcn fields ──
   {
     fieldType: "TextInput",
@@ -508,4 +548,32 @@ export const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
       { key: "max", label: "Max Stars", inputType: "number" },
     ],
   },
+  // ── Display components ──
+  {
+    fieldType: "AlertBox",
+    displayName: "Alert Box",
+    icon: Info,
+    category: "Display",
+    isStructural: true,
+    defaultProps: {
+      title: "Heads up!",
+      message: "This is an informational message.",
+      variant: "info",
+    },
+    configurableProps: [
+      { key: "title", label: "Title", inputType: "text" },
+      { key: "message", label: "Message", inputType: "text" },
+      {
+        key: "variant",
+        label: "Variant",
+        inputType: "select",
+        options: ["info", "success", "warning", "error"],
+      },
+    ],
+  },
 ];
+
+export const CUSTOM_CATALOG: FormFieldEntry[] = CUSTOM_FIELD_DEFS.map((def) => ({
+  ...def,
+  component: CUSTOM_COMPONENTS[def.fieldType]!,
+}));

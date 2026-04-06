@@ -19,6 +19,7 @@ import type {
   CanvasField,
   FieldType,
   FormFieldDefinition,
+  FormFieldEntry,
   FormSchema,
 } from "../form-renderer/types";
 import { findContainer, useFormBuilderState } from "./builder-state";
@@ -28,7 +29,7 @@ import { FieldPalette } from "./field-palette";
 import { FieldPreview } from "./field-preview";
 
 export interface FormBuilderProps {
-  catalog: FormFieldDefinition[];
+  catalog: FormFieldEntry[];
   defaultSchema?: Partial<FormSchema>;
   onChange?: (schema: FormSchema) => void;
   className?: string;

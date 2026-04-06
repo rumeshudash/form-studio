@@ -148,3 +148,11 @@ export interface FormFieldDefinition {
   isStructural?: boolean;
   configurableProps: ConfigurableProp[];
 }
+
+/** Unified catalog entry — combines a field definition with its React component.
+ *  Pass `FormFieldEntry[]` to both `FormBuilder` and `FormRenderer` so they share
+ *  the same source of truth for component definitions and implementations.
+ */
+export interface FormFieldEntry extends FormFieldDefinition {
+  component: FieldComponent;
+}
