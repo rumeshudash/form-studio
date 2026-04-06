@@ -7,16 +7,7 @@ export type ConditionAction = "show" | "hide" | "enable" | "disable" | "compute"
 
 // ─── Validation types ─────────────────────────────────────────────────────────
 
-export type ValidationRuleType =
-  | "required"
-  | "email"
-  | "url"
-  | "numeric"
-  | "minLength"
-  | "maxLength"
-  | "min"
-  | "max"
-  | "pattern";
+export type ValidationRuleType = "required" | "pattern";
 
 export interface FieldValidationRule {
   type: ValidationRuleType;

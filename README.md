@@ -142,7 +142,7 @@ The renderer applies `validationSchema` automatically according to these rules:
 | ---------------------- | --------------------------- | ------------------------------------------------------------ |
 | Yes                    | Yes                         | `validationSchema` is used, extended with a non-empty check  |
 | No                     | Yes                         | Schema is skipped (empty optional fields are never rejected) |
-| Yes                    | No                          | Falls back to the rule-based system (backward compat)        |
+| Yes                    | No                          | Only `required` and `pattern` rules are applied              |
 | No                     | No                          | No Zod schema generated                                      |
 
 
@@ -179,9 +179,6 @@ The form builder exposes two rules that form authors can configure per field:
 
 > Format rules (email, URL, number range, length) belong in the catalog via `validationSchema` — not in builder-level rules. This keeps the builder UI focused and ensures format constraints are always enforced consistently regardless of who builds the form.
 
-### Backward compatibility
-
-Schemas with legacy rule types (`email`, `url`, `numeric`, `minLength`, `maxLength`, `min`, `max`) continue to work. When a field has no `validationSchema`, the renderer falls back to the original rule-based Zod generation for all rule types.
 
 ## Conditional logic
 

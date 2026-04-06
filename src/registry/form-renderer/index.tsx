@@ -404,13 +404,6 @@ function buildWatchBindings(
 
 const VALIDATION_DEFAULTS: Record<ValidationRuleType, string> = {
   required: "This field is required",
-  email: "Enter a valid email address",
-  url: "Enter a valid URL",
-  numeric: "Must be a number",
-  minLength: "Too short",
-  maxLength: "Too long",
-  min: "Value is too small",
-  max: "Value is too large",
   pattern: "Invalid format",
 };
 
