@@ -1,7 +1,17 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ConditionAction, ConditionOperator, FieldCondition } from "../form-renderer/types";
 
 interface FieldRef {
@@ -88,11 +98,6 @@ export function ConditionBuilder({
   const [collapsed, setCollapsed] = useState(false);
   const keysRef = useStableKeys(conditions.length);
 
-  const inputClass = cn(
-    "w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs",
-    "focus:outline-none focus:ring-1 focus:ring-ring"
-  );
-
   const actions = isStructural ? ACTIONS_STRUCTURAL : ACTIONS_ALL;
 
   function addCondition() {
@@ -112,21 +117,19 @@ export function ConditionBuilder({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <button
+        <Button
           type="button"
-          className="text-xs font-medium text-foreground"
+          variant="ghost"
+          size="xs"
+          className="px-0 text-xs font-medium text-foreground hover:bg-transparent"
           onClick={() => setCollapsed((v) => !v)}
         >
           Conditions {conditions.length > 0 && `(${conditions.length})`}
-        </button>
+        </Button>
         {allFields.length > 0 && (
-          <button
-            type="button"
-            onClick={addCondition}
-            className="text-xs text-primary hover:underline"
-          >
+          <Button type="button" variant="link" size="xs" onClick={addCondition}>
             + Add
-          </button>
+          </Button>
         )}
       </div>
 
@@ -145,80 +148,90 @@ export function ConditionBuilder({
               key={stableKey}
               className="flex flex-col gap-1.5 rounded-md border border-border p-2 bg-background relative"
             >
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-xs"
                 onClick={() => removeCondition(idx)}
-                className="absolute top-1.5 right-1.5 text-muted-foreground hover:text-foreground text-xs leading-none"
+                className="absolute top-1 right-1 text-muted-foreground hover:text-foreground"
                 aria-label="Remove condition"
               >
-                ✕
-              </button>
+                <X className="h-3 w-3" />
+              </Button>
 
-              <label className="text-xs text-muted-foreground">When</label>
-              <select
-                className={inputClass}
+              <Label className="text-xs text-muted-foreground font-normal">When</Label>
+              <Select
                 value={cond.triggerField}
-                onChange={(e) => {
-                  const newField = allFields.find((f) => f.name === e.target.value);
+                onValueChange={(val) => {
+                  const newField = allFields.find((f) => f.name === val);
                   const newOps = newField
                     ? getOperatorsForField(newField.fieldType)
                     : ALL_OPERATORS;
                   const validOp = newOps.some((o) => o.value === cond.operator)
                     ? cond.operator
                     : newOps[0]!.value;
-                  updateCondition(idx, { triggerField: e.target.value, operator: validOp });
+                  updateCondition(idx, { triggerField: val ?? undefined, operator: validOp });
                 }}
               >
-                {allFields.map((f) => (
-                  <option key={f.name} value={f.name}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {allFields.map((f) => (
+                    <SelectItem key={f.name} value={f.name}>
+                      {f.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-              <select
-                className={inputClass}
+              <Select
                 value={cond.operator}
-                onChange={(e) =>
-                  updateCondition(idx, { operator: e.target.value as ConditionOperator })
+                onValueChange={(val) =>
+                  updateCondition(idx, { operator: val as ConditionOperator })
                 }
               >
-                {operators.map((op) => (
-                  <option key={op.value} value={op.value}>
-                    {op.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full" size="sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {operators.map((op) => (
+                    <SelectItem key={op.value} value={op.value}>
+                      {op.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {needsValue(cond.operator) && (
-                <input
+                <Input
                   type="text"
-                  className={inputClass}
                   placeholder="Value…"
                   value={cond.value !== undefined ? String(cond.value) : ""}
                   onChange={(e) => updateCondition(idx, { value: e.target.value })}
                 />
               )}
 
-              <label className="text-xs text-muted-foreground mt-1">Then</label>
-              <select
-                className={inputClass}
+              <Label className="text-xs text-muted-foreground font-normal mt-1">Then</Label>
+              <Select
                 value={cond.action}
-                onChange={(e) =>
-                  updateCondition(idx, { action: e.target.value as ConditionAction })
-                }
+                onValueChange={(val) => updateCondition(idx, { action: val as ConditionAction })}
               >
-                {actions.map((a) => (
-                  <option key={a.value} value={a.value}>
-                    {a.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full" size="sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {actions.map((a) => (
+                    <SelectItem key={a.value} value={a.value}>
+                      {a.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {cond.action === "compute" && (
-                <input
+                <Input
                   type="text"
-                  className={inputClass}
                   placeholder="Value or @fieldName"
                   value={cond.computeValue ?? ""}
                   onChange={(e) => updateCondition(idx, { computeValue: e.target.value })}

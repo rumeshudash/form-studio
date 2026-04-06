@@ -1,6 +1,16 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import type {
   ButtonConfig,
   CanvasField,
@@ -132,60 +142,52 @@ interface PropEditorProps {
 }
 
 function PropEditor({ prop, value, onChange }: PropEditorProps) {
-  const inputClass = cn(
-    "w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm",
-    "focus:outline-none focus:ring-1 focus:ring-ring"
-  );
-
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs text-muted-foreground">{prop.label}</label>
+      <Label className="text-xs text-muted-foreground font-normal">{prop.label}</Label>
 
       {prop.inputType === "text" && (
-        <input
+        <Input
           type="text"
-          className={inputClass}
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
         />
       )}
 
       {prop.inputType === "number" && (
-        <input
+        <Input
           type="number"
-          className={inputClass}
           value={(value as number) ?? ""}
           onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
         />
       )}
 
       {prop.inputType === "boolean" && (
-        <input
-          type="checkbox"
+        <Checkbox
           checked={(value as boolean) ?? false}
-          onChange={(e) => onChange(e.target.checked)}
-          className="h-4 w-4 rounded border-input"
+          onCheckedChange={(checked) => onChange(checked)}
         />
       )}
 
       {prop.inputType === "select" && prop.options && (
-        <select
-          className={inputClass}
-          value={(value as string) ?? ""}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {prop.options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
+        <Select value={(value as string) ?? ""} onValueChange={(val) => onChange(val)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {prop.options.map((opt) => (
+              <SelectItem key={opt} value={opt}>
+                {opt}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
 
       {prop.inputType === "options-list" && (
-        <textarea
-          className={cn(inputClass, "resize-none")}
+        <Textarea
           rows={4}
+          className="resize-none text-sm"
           value={Array.isArray(value) ? (value as string[]).join("\n") : ""}
           onChange={(e) =>
             onChange(

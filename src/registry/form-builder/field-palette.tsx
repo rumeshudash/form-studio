@@ -2,6 +2,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { Columns2, Columns3, GripVertical } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { FieldType, FormFieldDefinition } from "../form-renderer/types";
 import { BUILT_IN_LAYOUT_DEFS } from "./built-in-layout-defs";
@@ -32,25 +33,29 @@ function FieldChip({ draggableId, dragData, icon: Icon, label, onClick }: FieldC
       )}
     >
       {/* Drag handle */}
-      <button
+      <Button
         type="button"
-        className="px-1.5 py-2 cursor-grab active:cursor-grabbing touch-none text-muted-foreground/40 hover:text-muted-foreground"
+        variant="ghost"
+        size="icon-xs"
+        className="cursor-grab active:cursor-grabbing touch-none text-muted-foreground/40 hover:text-muted-foreground"
         {...attributes}
         {...listeners}
         aria-label="Drag to canvas"
       >
         <GripVertical className="h-3.5 w-3.5" />
-      </button>
+      </Button>
 
       {/* Click-to-add area */}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={onClick}
-        className="flex items-center gap-2 flex-1 pr-3 py-2 text-left hover:text-accent-foreground cursor-pointer"
+        className="flex-1 justify-start gap-2 pr-3 pl-0 hover:bg-transparent"
       >
         {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
         <span>{label}</span>
-      </button>
+      </Button>
     </div>
   );
 }
