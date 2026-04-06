@@ -10,6 +10,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, LayoutGrid, Trash2 } from "lucide-react";
 import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   CanvasField,
@@ -62,46 +63,46 @@ function GridPreview({
       )}
     >
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           className="cursor-grab active:cursor-grabbing touch-none text-muted-foreground/50 hover:text-muted-foreground"
           {...attributes}
           {...listeners}
           aria-label="Drag grid to reorder"
         >
           <GripVertical className="h-4 w-4" />
-        </button>
+        </Button>
 
         <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-xs font-medium text-muted-foreground flex-1">Grid</span>
 
         <div className="flex items-center gap-1">
           {([2, 3] as const).map((n) => (
-            <button
+            <Button
               key={n}
               type="button"
+              variant={grid.columns === n ? "default" : "ghost"}
+              size="xs"
               onClick={() => onUpdateColumns(grid.id, n)}
-              className={cn(
-                "px-1.5 py-0.5 rounded text-xs transition-colors",
-                grid.columns === n
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted"
-              )}
             >
               {n}
-            </button>
+            </Button>
           ))}
           <span className="text-xs text-muted-foreground ml-0.5">cols</span>
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           className="text-muted-foreground hover:text-destructive transition-colors"
           onClick={() => onRemoveItem(grid.id)}
           aria-label="Remove grid"
         >
           <Trash2 className="h-3.5 w-3.5" />
-        </button>
+        </Button>
       </div>
 
       <div

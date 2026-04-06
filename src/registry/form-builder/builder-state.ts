@@ -7,6 +7,7 @@ import type {
   CanvasGrid,
   CanvasItem,
   FieldCondition,
+  FieldValidationRule,
   FormBuilderState,
   FormField,
   FormFieldDefinition,
@@ -232,6 +233,24 @@ export function useFormBuilderState(
     }));
   }, []);
 
+  const updateFieldValidation = useCallback((id: string, validation: FieldValidationRule[]) => {
+    setState((prev) => ({
+      ...prev,
+      items: prev.items.map((item): CanvasItem => {
+        if (item.kind === "field" && item.id === id) {
+          return { ...item, validation };
+        }
+        if (item.kind === "grid") {
+          return {
+            ...item,
+            fields: item.fields.map((f) => (f.id === id ? { ...f, validation } : f)),
+          };
+        }
+        return item;
+      }),
+    }));
+  }, []);
+
   const updateGridColumns = useCallback((gridId: string, columns: 2 | 3) => {
     setState((prev) => ({
       ...prev,
@@ -280,6 +299,7 @@ export function useFormBuilderState(
     moveField,
     updateFieldProp,
     updateFieldConditions,
+    updateFieldValidation,
     updateGridColumns,
     updateStackConfig,
     updateButtonConfig,
@@ -320,6 +340,7 @@ function buildFormField(
     defaultValue: getDefaultValue(field, def),
     props: restProps,
     conditions: field.conditions,
+    validation: field.validation,
   };
 }
 
@@ -333,6 +354,7 @@ function makeCanvasFieldFromFormField(field: FormField): CanvasField {
     fieldType: field.type,
     props,
     conditions: field.conditions,
+    validation: field.validation,
   };
 }
 

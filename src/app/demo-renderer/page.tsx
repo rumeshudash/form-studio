@@ -3,7 +3,7 @@
 import { ModeToggle } from "@/components/mode-toggle";
 import { FormRenderer } from "@/registry/form-renderer";
 import type { FormSchema } from "@/registry/form-renderer/types";
-import { CUSTOM_COMPONENTS } from "../blocks/form-builder-with-schema/custom-fields";
+import { CUSTOM_CATALOG } from "../blocks/form-builder-with-schema/custom-fields";
 
 const SAMPLE_SCHEMA: FormSchema = {
   title: "Contact Form",
@@ -46,7 +46,7 @@ export default function RendererDemoPage() {
         </p>
         <FormRenderer
           schema={SAMPLE_SCHEMA}
-          customFields={CUSTOM_COMPONENTS}
+          catalog={CUSTOM_CATALOG}
           onSubmit={(data) => {
             console.log("Submitted:", data);
             alert(JSON.stringify(data, null, 2));

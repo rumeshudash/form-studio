@@ -14,11 +14,13 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type {
   CanvasField,
   FieldType,
   FormFieldDefinition,
+  FormFieldEntry,
   FormSchema,
 } from "../form-renderer/types";
 import { findContainer, useFormBuilderState } from "./builder-state";
@@ -28,7 +30,7 @@ import { FieldPalette } from "./field-palette";
 import { FieldPreview } from "./field-preview";
 
 export interface FormBuilderProps {
-  catalog: FormFieldDefinition[];
+  catalog: FormFieldEntry[];
   defaultSchema?: Partial<FormSchema>;
   onChange?: (schema: FormSchema) => void;
   className?: string;
@@ -51,6 +53,7 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
     moveField,
     updateFieldProp,
     updateFieldConditions,
+    updateFieldValidation,
     updateGridColumns,
     updateStackConfig,
     updateButtonConfig,
@@ -231,12 +234,12 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
   return (
     <div className={cn("flex flex-col h-full w-full overflow-hidden", className)}>
       <header className="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-background shrink-0">
-        <input
+        <Input
           type="text"
           value={state.formTitle}
           onChange={(e) => setFormMeta("formTitle", e.target.value)}
           placeholder="Form title..."
-          className="flex-1 bg-transparent text-sm font-medium focus:outline-none placeholder:text-muted-foreground"
+          className="flex-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm font-medium px-0 h-auto"
         />
       </header>
 
@@ -294,6 +297,7 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
           catalogMap={fullCatalogMap}
           onUpdateProp={updateFieldProp}
           onUpdateConditions={updateFieldConditions}
+          onUpdateValidation={updateFieldValidation}
           allFields={allFields}
           stackConfig={state.stackConfig}
           buttonConfig={state.buttonConfig}

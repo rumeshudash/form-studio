@@ -9,18 +9,28 @@ import {
   Renderer,
   StateProvider,
   useBoundProp,
-  ValidationProvider,
   VisibilityProvider,
 } from "@json-render/react";
-import { schema } from "@json-render/react/schema";
-import { createElement, useMemo, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
+import { schema } from "@json-render/react/schema";
 import { Button as ShadcnButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { FieldComponent, FieldCondition, FormField, FormRow, FormSchema } from "./types";
+import type {
+  FieldComponent,
+  FieldCondition,
+  FieldValidationRule,
+  FormField,
+  FormFieldEntry,
+  FormRow,
+  FormSchema,
+  ValidationRuleType,
+} from "./types";
 
-// ─── useRhfStateStore ─────────────────────────────────────────────────────────
+import { createElement, useMemo, useRef } from "react";
+
+// ─── useRhfStateStore ─────────────────────────────────────────────────────────────────
 
 function getByJsonPointer(obj: Record<string, unknown>, path: string): unknown {
   if (!path || path === "/") return obj;
@@ -51,8 +61,15 @@ function setByJsonPointer(
   return next;
 }
 
-function useRhfStateStore(defaultValues: Record<string, unknown> = {}) {
-  const form = useForm<Record<string, unknown>>({ defaultValues, mode: "onBlur" });
+function useRhfStateStore(
+  defaultValues: Record<string, unknown> = {},
+  zodSchema?: z.ZodObject<Record<string, z.ZodTypeAny>>
+) {
+  const form = useForm<Record<string, unknown>>({
+    defaultValues,
+    mode: "onBlur",
+    ...(zodSchema && { resolver: zodResolver(zodSchema) }),
+  });
 
   const listenersRef = useRef(new Set<() => void>());
   const snapshotRef = useRef<StateModel>({ ...defaultValues });
@@ -253,8 +270,36 @@ function wrapFieldComponent(Component: FieldComponent) {
     props: Record<string, unknown>;
     bindings?: Record<string, string>;
   }) {
-    const [value, setValue] = useBoundProp(props.value, bindings?.value);
-    return createElement(Component, { ...props, value, onChange: setValue });
+    const name = props.name as string | undefined;
+
+    // Unnamed structural elements (e.g. decorative fields) — no form registration needed
+    if (!name) {
+      // biome-ignore lint/correctness/useHookAtTopLevel: fallback path for unnamed fields only
+      const [value, setValue] = useBoundProp(props.value, bindings?.value);
+      return createElement(Component, {
+        ...props,
+        value,
+        onChange: (v: unknown) => setValue(v),
+        errors: [],
+        isValid: true,
+      });
+    }
+
+    return (
+      <Controller
+        name={name}
+        render={({ field, fieldState }) =>
+          createElement(Component, {
+            ...props,
+            value: field.value ?? "",
+            onChange: field.onChange,
+            onBlur: field.onBlur,
+            errors: fieldState.error?.message ? [fieldState.error.message] : [],
+            isValid: !fieldState.error,
+          })
+        }
+      />
+    );
   };
 }
 
@@ -357,9 +402,94 @@ function buildWatchBindings(
   return watch;
 }
 
+const VALIDATION_DEFAULTS: Record<ValidationRuleType, string> = {
+  required: "This field is required",
+  email: "Enter a valid email address",
+  url: "Enter a valid URL",
+  numeric: "Must be a number",
+  minLength: "Too short",
+  maxLength: "Too long",
+  min: "Value is too small",
+  max: "Value is too large",
+  pattern: "Invalid format",
+};
+
+function buildZodFieldSchema(
+  rules: FieldValidationRule[],
+  defaultValue: unknown
+): z.ZodTypeAny | null {
+  if (!rules.length) return null;
+
+  const isBoolean = typeof defaultValue === "boolean";
+  const isNumeric =
+    typeof defaultValue === "number" ||
+    rules.some((r) => r.type === "min" || r.type === "max" || r.type === "numeric");
+  const requiredRule = rules.find((r) => r.type === "required");
+
+  if (isBoolean) {
+    const s = z.boolean();
+    for (const rule of rules) {
+      const msg = rule.message || VALIDATION_DEFAULTS[rule.type];
+      if (rule.type === "required") {
+        return z.literal(true, {
+          message: msg,
+        });
+      }
+    }
+    return s;
+  }
+
+  if (isNumeric) {
+    const numericRule = rules.find((r) => r.type === "numeric");
+    let s = z.coerce.number({ error: numericRule?.message || VALIDATION_DEFAULTS.numeric });
+    for (const rule of rules) {
+      const msg = rule.message || VALIDATION_DEFAULTS[rule.type];
+      if (rule.type === "min") s = s.min(rule.value as number, msg);
+      if (rule.type === "max") s = s.max(rule.value as number, msg);
+    }
+    return s;
+  }
+
+  let s: z.ZodString | z.ZodEmail | z.ZodURL = z.string();
+  for (const rule of rules) {
+    const msg = rule.message || VALIDATION_DEFAULTS[rule.type];
+    if (rule.type === "email") s = z.email(msg);
+    if (rule.type === "url") s = z.url(msg);
+    if (rule.type === "minLength") s = s.min(rule.value as number, msg);
+    if (rule.type === "maxLength") s = s.max(rule.value as number, msg);
+    if (rule.type === "pattern") s = s.regex(new RegExp(rule.value as string), msg);
+  }
+  if (requiredRule) {
+    s = s.min(1, requiredRule.message || VALIDATION_DEFAULTS.required);
+  }
+  return s;
+}
+
+function buildZodFormSchema(
+  fields: FormSchema["fields"]
+): z.ZodObject<Record<string, z.ZodTypeAny>> | undefined {
+  const shape: Record<string, z.ZodTypeAny> = {};
+  function collectField(field: FormField) {
+    if (!field.name || !field.validation?.length) return;
+    const zField = buildZodFieldSchema(field.validation, field.defaultValue ?? "");
+    if (zField) shape[field.name] = zField;
+  }
+  for (const item of fields) {
+    if (item.type === "Grid") {
+      for (const f of (item as FormRow).fields) collectField(f as FormField);
+    } else {
+      collectField(item as FormField);
+    }
+  }
+  return Object.keys(shape).length > 0 ? z.object(shape).passthrough() : undefined;
+}
+
 // ─── Schema converter ─────────────────────────────────────────────────────────
 
-function schemaToSpec(schema: FormSchema): Spec & { state: Record<string, unknown> } {
+function schemaToSpec(
+  schema: FormSchema,
+  structuralTypes: Set<string> = new Set()
+): Spec & { state: Record<string, unknown> } {
   const rootChildren: string[] = [];
   const elements: Record<string, object> = {};
   const stateDefaults: Record<string, unknown> = {};
@@ -367,13 +497,15 @@ function schemaToSpec(schema: FormSchema): Spec & { state: Record<string, unknow
 
   function processField(field: FormField): string {
     const key = `f${idx++}`;
-    const { type, name, defaultValue, props = {}, conditions = [] } = field;
+    const { type, name, defaultValue, props = {}, conditions = [], validation: _v = [] } = field;
 
     const visible = buildVisibleCondition(conditions);
     const disabledExpr = buildDisabledExpression(conditions);
-    const extraProps = disabledExpr !== undefined ? { disabled: disabledExpr } : {};
+    const extraProps = {
+      ...(disabledExpr !== undefined && { disabled: disabledExpr }),
+    };
 
-    if (!name) {
+    if (!name || structuralTypes.has(type)) {
       elements[key] = {
         type,
         props: { ...props, ...extraProps },
@@ -437,8 +569,8 @@ export interface FormRendererProps {
   schema: FormSchema;
   onSubmit: (data: Record<string, unknown>) => void | Promise<void>;
   defaultValues?: Record<string, unknown>;
-  /** Plain React field components (FieldComponent interface). Auto-wrapped with state binding. */
-  customFields?: Record<string, FieldComponent>;
+  /** Unified field catalog — provides both component implementations and definitions (including isStructural). */
+  catalog?: FormFieldEntry[];
   className?: string;
 }
 
@@ -446,14 +578,23 @@ export function FormRenderer({
   schema,
   onSubmit,
   defaultValues,
-  customFields,
+  catalog,
   className,
 }: FormRendererProps) {
-  const spec = schemaToSpec(schema);
+  const structuralTypes = useMemo(
+    () => new Set((catalog ?? []).filter((e) => e.isStructural).map((e) => e.fieldType)),
+    [catalog]
+  );
+  const spec = schemaToSpec(schema, structuralTypes);
+  const zodSchema = useMemo(() => buildZodFormSchema(schema.fields), [schema.fields]);
   const initialValues = { ...spec.state, ...defaultValues };
-  const { store, form } = useRhfStateStore(initialValues);
+  const { store, form } = useRhfStateStore(initialValues, zodSchema);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: registry is intentionally created once; customFields changes are not supported at runtime
+  const customFields = useMemo(
+    () => Object.fromEntries((catalog ?? []).map((e) => [e.fieldType, e.component])),
+    [catalog]
+  );
+  // biome-ignore lint/correctness/useExhaustiveDependencies: registry is intentionally created once; catalog changes are not supported at runtime
   const registry = useMemo(() => createFieldRegistry(customFields), []);
 
   const handleSubmit = form.handleSubmit(async (data) => {
@@ -461,35 +602,37 @@ export function FormRenderer({
   });
 
   return (
-    <StateProvider store={store}>
-      <ActionProvider
-        handlers={{
-          submit: async () => {
-            await handleSubmit();
-          },
-          setFieldValue: (params) => {
-            const targetPath = params.targetPath as string;
-            const sourceExpr = params.sourceExpr as string;
-            const value =
-              typeof sourceExpr === "string" && sourceExpr.startsWith("@")
-                ? store.get(`/${sourceExpr.slice(1)}`)
-                : sourceExpr;
-            store.set(targetPath, value);
-          },
-        }}
-      >
-        <VisibilityProvider>
-          <ValidationProvider>
+    <FormProvider {...form}>
+      <StateProvider store={store}>
+        <ActionProvider
+          handlers={{
+            submit: async () => {
+              await handleSubmit();
+            },
+            setFieldValue: (params) => {
+              const targetPath = params.targetPath as string;
+              const sourceExpr = params.sourceExpr as string;
+              const value =
+                typeof sourceExpr === "string" && sourceExpr.startsWith("@")
+                  ? store.get(`/${sourceExpr.slice(1)}`)
+                  : sourceExpr;
+              store.set(targetPath, value);
+            },
+          }}
+        >
+          <VisibilityProvider>
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={async (e) => {
+                e.preventDefault();
+              }}
               className={cn("w-full", className)}
               noValidate
             >
               <Renderer spec={spec} registry={registry} />
             </form>
-          </ValidationProvider>
-        </VisibilityProvider>
-      </ActionProvider>
-    </StateProvider>
+          </VisibilityProvider>
+        </ActionProvider>
+      </StateProvider>
+    </FormProvider>
   );
 }

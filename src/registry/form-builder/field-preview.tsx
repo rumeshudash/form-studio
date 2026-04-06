@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Box, GripVertical, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { CanvasField, FormFieldDefinition } from "../form-renderer/types";
 
@@ -53,8 +54,10 @@ export function FieldPreview({
       )}
       onClick={() => onSelect(field.id)}
     >
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         className="cursor-grab active:cursor-grabbing touch-none text-muted-foreground/50 hover:text-muted-foreground"
         {...attributes}
         {...listeners}
@@ -62,7 +65,7 @@ export function FieldPreview({
         aria-label="Drag to reorder"
       >
         <GripVertical className="h-4 w-4" />
-      </button>
+      </Button>
 
       <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
 
@@ -71,8 +74,10 @@ export function FieldPreview({
         <p className="text-xs text-muted-foreground truncate">{name}</p>
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
         onClick={(e) => {
           e.stopPropagation();
@@ -81,7 +86,7 @@ export function FieldPreview({
         aria-label="Remove field"
       >
         <Trash2 className="h-3.5 w-3.5" />
-      </button>
+      </Button>
     </div>
   );
 }

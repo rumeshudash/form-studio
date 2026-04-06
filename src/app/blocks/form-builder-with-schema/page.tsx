@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { FormBuilder } from "@/registry/form-builder";
 import { FormRenderer } from "@/registry/form-renderer";
 import type { FormSchema } from "@/registry/form-renderer/types";
-import { CUSTOM_COMPONENTS, CUSTOM_FIELD_DEFS } from "./custom-fields";
+import { CUSTOM_CATALOG } from "./custom-fields";
 import { SchemaViewer } from "./schema-viewer";
 
 type RightTab = "schema" | "preview";
@@ -28,7 +28,7 @@ export default function FormBuilderWithSchemaPage() {
   return (
     <ResizablePanelGroup orientation="horizontal" className="flex-1">
       <ResizablePanel defaultSize={70} minSize={55}>
-        <FormBuilder catalog={CUSTOM_FIELD_DEFS} onChange={setSchema} />
+        <FormBuilder catalog={CUSTOM_CATALOG} onChange={setSchema} />
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={30} minSize={20}>
@@ -83,7 +83,7 @@ export default function FormBuilderWithSchemaPage() {
                 {schema ? (
                   <FormRenderer
                     schema={schema}
-                    customFields={CUSTOM_COMPONENTS}
+                    catalog={CUSTOM_CATALOG}
                     onSubmit={(data) => console.log("Form submitted:", data)}
                   />
                 ) : (
