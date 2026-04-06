@@ -28,6 +28,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { z } from "zod";
 import type {
   FieldComponent,
   FieldComponentProps,
@@ -504,6 +505,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     category: "Input",
     defaultProps: { label: "Slider", min: 0, max: 100, step: 1, value: null },
     defaultValue: 50,
+    validationSchema: z.coerce.number().min(0).max(100),
     configurableProps: [
       { key: "label", label: "Label", inputType: "text" },
       { key: "name", label: "Field Name", inputType: "text" },
@@ -520,6 +522,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     category: "Input",
     defaultProps: { label: "Color", value: null },
     defaultValue: "#000000",
+    validationSchema: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Must be a valid hex color"),
     configurableProps: [
       { key: "label", label: "Label", inputType: "text" },
       { key: "name", label: "Field Name", inputType: "text" },
@@ -532,6 +535,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     category: "Input",
     defaultProps: { label: "Date", value: null, min: null, max: null },
     defaultValue: "",
+    validationSchema: z.string().date("Must be a valid date"),
     configurableProps: [
       { key: "label", label: "Label", inputType: "text" },
       { key: "name", label: "Field Name", inputType: "text" },
@@ -546,6 +550,7 @@ const CUSTOM_FIELD_DEFS: FormFieldDefinition[] = [
     category: "Input",
     defaultProps: { label: "Rating", value: null, max: 5 },
     defaultValue: 0,
+    validationSchema: z.coerce.number().min(0).max(5),
     configurableProps: [
       { key: "label", label: "Label", inputType: "text" },
       { key: "name", label: "Field Name", inputType: "text" },

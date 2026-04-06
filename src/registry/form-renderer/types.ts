@@ -1,3 +1,5 @@
+import type { z } from "zod";
+
 // ─── Conditional logic types ──────────────────────────────────────────────────
 
 export type ConditionOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "truthy" | "falsy";
@@ -5,16 +7,7 @@ export type ConditionAction = "show" | "hide" | "enable" | "disable" | "compute"
 
 // ─── Validation types ─────────────────────────────────────────────────────────
 
-export type ValidationRuleType =
-  | "required"
-  | "email"
-  | "url"
-  | "numeric"
-  | "minLength"
-  | "maxLength"
-  | "min"
-  | "max"
-  | "pattern";
+export type ValidationRuleType = "required" | "pattern";
 
 export interface FieldValidationRule {
   type: ValidationRuleType;
@@ -146,6 +139,9 @@ export interface FormFieldDefinition {
   defaultValue?: unknown;
   // Structural components (Separator, Heading, Text, Alert) — no state binding
   isStructural?: boolean;
+  /** Catalog-level Zod schema applied automatically when the field has a value.
+   *  Combined with the required check when the field is marked required. */
+  validationSchema?: z.ZodTypeAny;
   configurableProps: ConfigurableProp[];
 }
 
