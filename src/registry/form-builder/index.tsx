@@ -33,10 +33,12 @@ export interface FormBuilderProps {
   catalog: FormFieldEntry[];
   defaultSchema?: Partial<FormSchema>;
   onChange?: (schema: FormSchema) => void;
+  /** Extra content rendered at the right end of the builder's header bar. */
+  actions?: React.ReactNode;
   className?: string;
 }
 
-export function FormBuilder({ catalog, defaultSchema, onChange, className }: FormBuilderProps) {
+export function FormBuilder({ catalog, defaultSchema, onChange, actions, className }: FormBuilderProps) {
   const catalogMap = useMemo(
     () => Object.fromEntries(catalog.map((d) => [d.fieldType, d])),
     [catalog]
@@ -241,6 +243,7 @@ export function FormBuilder({ catalog, defaultSchema, onChange, className }: For
           placeholder="Form title..."
           className="flex-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm font-medium px-0 h-auto"
         />
+        {actions}
       </header>
 
       <div className="flex flex-1 overflow-hidden">
