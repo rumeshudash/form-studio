@@ -21,7 +21,6 @@ import type {
   StackConfig,
 } from "../form-renderer/types";
 import { ConditionBuilder } from "./condition-builder";
-import { ValidationBuilder } from "./validation-builder";
 
 interface FieldConfigPanelProps {
   field: CanvasField | null;
@@ -82,8 +81,7 @@ export function FieldConfigPanel({
           </div>
           {!def.isStructural && (
             <div className="border-t border-border pt-3">
-              <ValidationBuilder
-                fieldId={field.id}
+              <ValidationEditor
                 rules={field.validation ?? []}
                 onChange={(rules) => onUpdateValidation(field.id, rules)}
               />
@@ -200,6 +198,102 @@ function PropEditor({ prop, value, onChange }: PropEditorProps) {
           placeholder="One option per line"
         />
       )}
+    </div>
+  );
+}
+
+function ValidationEditor({
+  rules,
+  onChange,
+}: {
+  rules: FieldValidationRule[];
+  onChange: (rules: FieldValidationRule[]) => void;
+}) {
+  const isRequired = rules.some((r) => r.type === "required");
+  const requiredMsg = rules.find((r) => r.type === "required")?.message ?? "";
+  const patternRules = rules.filter((r) => r.type === "pattern");
+
+  function setRequired(checked: boolean) {
+    const next = rules.filter((r) => r.type !== "required");
+    onChange(checked ? [{ type: "required" }, ...next] : next);
+  }
+
+  function setRequiredMsg(msg: string) {
+    onChange(rules.map((r) => (r.type === "required" ? { ...r, message: msg || undefined } : r)));
+  }
+
+  function addPattern() {
+    onChange([...rules, { type: "pattern", value: "" }]);
+  }
+
+  function updatePattern(idx: number, field: "value" | "message", val: string) {
+    const updated = patternRules.map((p, i) =>
+      i === idx ? { ...p, [field]: field === "message" ? val || undefined : val } : p
+    );
+    onChange([...rules.filter((r) => r.type !== "pattern"), ...updated]);
+  }
+
+  function removePattern(idx: number) {
+    const updated = patternRules.filter((_, i) => i !== idx);
+    onChange([...rules.filter((r) => r.type !== "pattern"), ...updated]);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs font-medium text-foreground">Validation</p>
+
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-2">
+          <Checkbox checked={isRequired} onCheckedChange={(v) => setRequired(Boolean(v))} />
+          <Label className="text-xs text-muted-foreground font-normal">Required</Label>
+        </div>
+        {isRequired && (
+          <Input
+            type="text"
+            placeholder="Error message (optional)"
+            value={requiredMsg}
+            onChange={(e) => setRequiredMsg(e.target.value)}
+          />
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label className="text-xs text-muted-foreground font-normal">Patterns (regex)</Label>
+        {patternRules.map((p, idx) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: pattern order is stable within a single edit session
+          <div key={idx} className="flex flex-col gap-1">
+            <div className="flex items-center gap-1">
+              <Input
+                type="text"
+                placeholder="e.g. ^[A-Z]+"
+                value={(p.value as string) ?? ""}
+                onChange={(e) => updatePattern(idx, "value", e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => removePattern(idx)}
+                className="shrink-0 px-1 text-sm text-muted-foreground hover:text-destructive"
+                aria-label="Remove pattern"
+              >
+                ✕
+              </button>
+            </div>
+            <Input
+              type="text"
+              placeholder="Error message (optional)"
+              value={p.message ?? ""}
+              onChange={(e) => updatePattern(idx, "message", e.target.value)}
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addPattern}
+          className="text-left text-xs text-muted-foreground hover:text-foreground"
+        >
+          + Add pattern
+        </button>
+      </div>
     </div>
   );
 }

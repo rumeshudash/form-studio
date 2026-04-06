@@ -1,5 +1,6 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { StateCondition, VisibilityCondition } from "@json-render/core";
 import { defineCatalog } from "@json-render/core";
 import type { Spec, StateModel, StateStore } from "@json-render/react";
@@ -11,10 +12,10 @@ import {
   useBoundProp,
   VisibilityProvider,
 } from "@json-render/react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { schema } from "@json-render/react/schema";
+import { createElement, useMemo, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { schema } from "@json-render/react/schema";
 import { Button as ShadcnButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
@@ -22,13 +23,12 @@ import type {
   FieldCondition,
   FieldValidationRule,
   FormField,
+  FormFieldDefinition,
   FormFieldEntry,
   FormRow,
   FormSchema,
   ValidationRuleType,
 } from "./types";
-
-import { createElement, useMemo, useRef } from "react";
 
 // ─── useRhfStateStore ─────────────────────────────────────────────────────────────────
 
@@ -421,11 +421,6 @@ function buildZodFieldSchema(
   if (!rules.length) return null;
 
   const isBoolean = typeof defaultValue === "boolean";
-  const isNumeric =
-    typeof defaultValue === "number" ||
-    rules.some((r) => r.type === "min" || r.type === "max" || r.type === "numeric");
-  const requiredRule = rules.find((r) => r.type === "required");
-
   if (isBoolean) {
     const s = z.boolean();
     for (const rule of rules) {
@@ -439,41 +434,52 @@ function buildZodFieldSchema(
     return s;
   }
 
-  if (isNumeric) {
-    const numericRule = rules.find((r) => r.type === "numeric");
-    let s = z.coerce.number({ error: numericRule?.message || VALIDATION_DEFAULTS.numeric });
-    for (const rule of rules) {
-      const msg = rule.message || VALIDATION_DEFAULTS[rule.type];
-      if (rule.type === "min") s = s.min(rule.value as number, msg);
-      if (rule.type === "max") s = s.max(rule.value as number, msg);
-    }
-    return s;
-  }
-
   let s: z.ZodString | z.ZodEmail | z.ZodURL = z.string();
   for (const rule of rules) {
     const msg = rule.message || VALIDATION_DEFAULTS[rule.type];
-    if (rule.type === "email") s = z.email(msg);
-    if (rule.type === "url") s = z.url(msg);
-    if (rule.type === "minLength") s = s.min(rule.value as number, msg);
-    if (rule.type === "maxLength") s = s.max(rule.value as number, msg);
     if (rule.type === "pattern") s = s.regex(new RegExp(rule.value as string), msg);
-  }
-  if (requiredRule) {
-    s = s.min(1, requiredRule.message || VALIDATION_DEFAULTS.required);
   }
   return s;
 }
 
+function applyRequired(schema: z.ZodTypeAny, message: string): z.ZodTypeAny {
+  if (schema instanceof z.ZodString) return schema.min(1, message);
+  if (schema instanceof z.ZodBoolean) return z.literal(true, { message });
+  return schema;
+}
+
 function buildZodFormSchema(
-  fields: FormSchema["fields"]
+  fields: FormSchema["fields"],
+  catalogMap: Record<string, FormFieldDefinition> = {}
 ): z.ZodObject<Record<string, z.ZodTypeAny>> | undefined {
   const shape: Record<string, z.ZodTypeAny> = {};
+
   function collectField(field: FormField) {
     if (!field.name || !field.validation?.length) return;
-    const zField = buildZodFieldSchema(field.validation, field.defaultValue ?? "");
-    if (zField) shape[field.name] = zField;
+
+    const def = catalogMap[field.type];
+    const hasRequired = field.validation.some((r) => r.type === "required");
+    const requiredMsg =
+      field.validation.find((r) => r.type === "required")?.message ?? VALIDATION_DEFAULTS.required;
+
+    let schema: z.ZodTypeAny | null = null;
+
+    if (def?.validationSchema) {
+      if (hasRequired) {
+        schema = applyRequired(def.validationSchema, requiredMsg);
+      } else {
+        const nonRequiredRules = field.validation.filter((r) => r.type !== "required");
+        if (nonRequiredRules.length) {
+          schema = buildZodFieldSchema(nonRequiredRules, field.defaultValue ?? "");
+        }
+      }
+    } else {
+      schema = buildZodFieldSchema(field.validation, field.defaultValue ?? "");
+    }
+
+    if (schema) shape[field.name] = schema;
   }
+
   for (const item of fields) {
     if (item.type === "Grid") {
       for (const f of (item as FormRow).fields) collectField(f as FormField);
@@ -585,8 +591,15 @@ export function FormRenderer({
     () => new Set((catalog ?? []).filter((e) => e.isStructural).map((e) => e.fieldType)),
     [catalog]
   );
+  const catalogMap = useMemo(
+    () => Object.fromEntries((catalog ?? []).map((e) => [e.fieldType, e])),
+    [catalog]
+  );
   const spec = schemaToSpec(schema, structuralTypes);
-  const zodSchema = useMemo(() => buildZodFormSchema(schema.fields), [schema.fields]);
+  const zodSchema = useMemo(
+    () => buildZodFormSchema(schema.fields, catalogMap),
+    [schema.fields, catalogMap]
+  );
   const initialValues = { ...spec.state, ...defaultValues };
   const { store, form } = useRhfStateStore(initialValues, zodSchema);
 
